@@ -10,6 +10,7 @@ const sidebarItems = [
   {name:"Assignments", href:"/assignments"},
   { name: "Attendance", href:"/attendence" },
   { name: "Results", href: "/results" },
+  {name:"Products", href:'/products'}
 ];
 
 export const Sidebar = () => {

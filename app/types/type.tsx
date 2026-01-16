@@ -53,3 +53,19 @@ export interface Props {
   data: SummaryCard[];
 }
 
+export interface Product {
+  id:number;
+  title:string;
+  price:number;
+  category:string;
+  status:"Available" | "Out of Stock";
+}
+ export interface FakeApiProduct {
+  id: number;
+  title: string;
+  price: number;
+  category: string;
+}
+
+
+
