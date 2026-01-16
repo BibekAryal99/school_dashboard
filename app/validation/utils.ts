@@ -1,37 +1,5 @@
 import { z } from "zod";
 
-export const userDataSchema = z.object({
-    id: z.number().min(2).max(100, "only charatcers between 2 and 100 are allowed"),
-    name: z.string().min(10).max(100, "only charatcers between 10 and 100 are allowed"),
-    email: z.string().email(),
-    age: z.number().positive().max(100),
-    preferences: z.object({
-        theme: z.enum(["light", "dark"]).default("light"),
-        notifications: z.boolean().default(false),
-    }).default({
-        theme: "light",
-        notifications: false
-    })
-});
-
-
-export const userFormSchema = userDataSchema.extend({
-    id: z.number().min(2).max(100, "only charatcers between 2 and 100 are allowed").default(1),
-    name: z.string().min(10).max(100, "only charatcers between 10 and 100 are allowed").default(""),
-    email: z.string().email().default(""),
-    age: z.number().positive().max(100).default(0),
-    preferences: z.object({
-        theme: z.enum(["light", "dark"]).default("light"),
-        notifications: z.boolean().default(false),
-    }).default({
-        theme: "light",
-        notifications: false
-    })
-});
-
-export type UserData = z.infer<typeof userDataSchema>;
-
-
 export const courseSchema = z.object({
   name: z.string().min(3, "Course name must be at least 3 characters"),
   instructor: z.string().min(3, "Instructor name is required"),
