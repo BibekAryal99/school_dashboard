@@ -1,15 +1,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-interface SummaryCard {
-  title: string;
-  value: string | number;
-}
-
-interface Props {
-  data: SummaryCard[];
-}
-
 export const SummaryCards = ({ data }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
