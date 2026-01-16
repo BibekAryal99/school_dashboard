@@ -44,4 +44,12 @@ export interface Student  {
   email: string;
   grade: string;
 };
+export interface SummaryCard {
+  title: string;
+  value: string | number;
+}
+
+export interface Props {
+  data: SummaryCard[];
+}
 

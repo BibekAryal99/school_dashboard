@@ -1,14 +1,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
-interface SummaryCard {
-  title: string;
-  value: string | number;
-}
-
-interface Props {
-  data: SummaryCard[];
-}
+import type { SummaryCard, Props } from "@/app/types/type";
 
 export const SummaryCards = ({ data }) => {
   return (
