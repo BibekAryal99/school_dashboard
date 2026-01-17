@@ -1,9 +1,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-<<<<<<< HEAD
 import type { SummaryCard, Props } from "@/app/types/type";
-=======
->>>>>>> c53e6bb3105ea3cdd7f65b4e6265a0b8acc1b6e1
 
 export const SummaryCards = ({ data }) => {
   return (
