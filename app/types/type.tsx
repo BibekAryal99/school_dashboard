@@ -45,14 +45,16 @@ export interface Student {
   grade: string;
 }
 
-export interface SummaryCard {
-  title: string;
-  value: string | number;
+export type SummaryCard = {
+  title: string
+  value: string | number
+  icon?: React.ReactNode
 }
 
-export interface SummaryCardsProps {
-  data: SummaryCard[];
+export type Props = {
+  data: SummaryCard[]
 }
+
 
 export interface Product {
   id: number;
