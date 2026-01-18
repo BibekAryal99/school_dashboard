@@ -31,7 +31,7 @@ export interface Course {
 
 export interface AssignmentForm {
   title: string;
-  description: string;
+  description?: string;
   dueDate: string;
   subject: string;
 }
