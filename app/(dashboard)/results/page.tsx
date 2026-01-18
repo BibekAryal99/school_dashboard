@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ResultFormData, resultSchema } from "../../validation/utils";
+import { ResultFormData, resultSchema } from "@/app/validation/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
-import type {Result} from "@/app/types/type"
+import type { Result } from "@/app/types/type";
 
 const computeSummary = (results: Result[]) => [
   { title: "Total Exams", value: results.length },
@@ -58,7 +58,7 @@ const computeSummary = (results: Result[]) => [
     title: "Average Marks",
     value: results.length
       ? (results.reduce((acc, r) => acc + r.marks, 0) / results.length).toFixed(
-          2
+          2,
         )
       : 0,
   },
@@ -102,7 +102,7 @@ export default function ResultsPage() {
   const handleSubmit = (data: ResultFormData) => {
     if (editing) {
       setResults((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
+        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r)),
       );
       toast({
         title: "Result updated",

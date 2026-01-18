@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { TeacherFormData, teacherSchema } from "@/app/validation/utils";
+import { TeacherFormData, teacherSchema } from "@/app/validation/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +42,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Teacher } from "@/app/types/type";
-
 
 const STORAGE_KEY = "teachers_data";
 
@@ -78,7 +77,7 @@ export default function TeachersPage() {
   const handleSubmit = (data: TeacherFormData) => {
     if (editing) {
       setTeachers((prev) =>
-        prev.map((t) => (t.id === editing.id ? { ...t, ...data } : t))
+        prev.map((t) => (t.id === editing.id ? { ...t, ...data } : t)),
       );
     } else {
       setTeachers((prev) => [...prev, { id: Date.now(), ...data }]);

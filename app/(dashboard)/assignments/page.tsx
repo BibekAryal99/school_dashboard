@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -42,21 +41,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
-import { AssignmentForm, assignmentSchema } from "../../validation/utils";
 
-type Assignment = AssignmentForm & {
-  id: number;
-};
-
-const initialAssignments: Assignment[] = [
-  { id: 1, title: "Algebra Homework", subject: "Math", dueDate: "2024-02-15" },
-  {
-    id: 2,
-    title: "Physics Lab Report",
-    subject: "Physics",
-    dueDate: "2024-02-18",
-  },
-];
+import { AssignmentForm, assignmentSchema } from "../../validation/schema";
+import { initialAssignments } from "@/app/constants/data";
+import type { Assignment } from "@/app/types/type";
 
 const getSummary = (data: Assignment[]) => [
   { title: "Total Assignments", value: data.length },
@@ -78,13 +66,17 @@ export default function AssignmentsPage() {
 
   const form = useForm<AssignmentForm>({
     resolver: zodResolver(assignmentSchema),
-    defaultValues: { title: "", subject: "", dueDate: "" },
+    defaultValues: {
+      title: "",
+      subject: "",
+      dueDate: "",
+    },
   });
 
   const onSubmit = (data: AssignmentForm) => {
     if (editing) {
       setAssignments((prev) =>
-        prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a))
+        prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a)),
       );
     } else {
       setAssignments((prev) => [...prev, { id: Date.now(), ...data }]);
@@ -97,7 +89,13 @@ export default function AssignmentsPage() {
 
   const handleEdit = (assignment: Assignment) => {
     setEditing(assignment);
-    form.reset(assignment);
+
+    form.reset({
+      title: assignment.title,
+      subject: assignment.subject,
+      dueDate: assignment.dueDate,
+    });
+
     setOpen(true);
   };
 
@@ -198,7 +196,10 @@ export default function AssignmentsPage() {
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-red-600"
+                          >
                             Delete
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
@@ -206,10 +207,10 @@ export default function AssignmentsPage() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              Are you sure want to delete the data?
+                              Are you sure you want to delete this assignment?
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              This assignment will be permanently deleted.
+                              This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
 

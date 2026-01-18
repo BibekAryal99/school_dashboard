@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { courseSchema, CourseFormData } from "@/app/validation/utils";
+import { courseSchema, CourseFormData } from "@/app/validation/schema";
 
 import {
   Table,
@@ -41,23 +41,31 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
 import type { Course } from "@/app/types/type";
+import { initialCourses } from "@/app/constants/data";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@radix-ui/react-toast";
 
-const initialCourses: Course[] = [
-  {
-    id: 1,
-    name: "Mathematics",
-    instructor: "Mr. Anderson",
-    students: 120,
-    status: "Active",
-  },
-];
+const STORAGE_KEY = "course_data";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const { toast, ToastContainer } = useToast();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Course | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    setCourses(stored ? JSON.parse(stored) : []);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
+    }
+  }, [courses, mounted]);
 
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
@@ -72,11 +80,19 @@ export default function CoursesPage() {
   const onSubmit = (data: CourseFormData) => {
     if (editing) {
       setCourses((prev) =>
-        prev.map((c) => (c.id === editing.id ? { ...c, ...data } : c))
+        prev.map((c) => (c.id === editing.id ? { ...c, ...data } : c)),
       );
+      toast({
+        title: "Course Updated",
+        description: "Course have been updated successfully",
+      });
     } else {
       setCourses((prev) => [...prev, { id: Date.now(), ...data }]);
     }
+    toast({
+      title: "Course added",
+      description: "Course have been added successfully",
+    });
 
     setOpen(false);
     setEditing(null);
@@ -91,149 +107,159 @@ export default function CoursesPage() {
 
   const handleDelete = (id: number) => {
     setCourses((prev) => prev.filter((c) => c.id !== id));
+    toast({
+      title: "Course deleted",
+      description: "Course have been deleted successfully",
+    });
   };
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-bold">Courses</h2>
-          <p className="text-sm text-gray-500">
-            Manage courses with validation
-          </p>
+      <ToastProvider>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-3xl font-bold">Courses</h2>
+            <p className="text-sm text-gray-500">
+              Manage courses with validation
+            </p>
+          </div>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>Add Course</Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editing ? "Edit Course" : "Add Course"}
+                </DialogTitle>
+              </DialogHeader>
+
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <div>
+                  <Label>Course Name</Label>
+                  <Input {...form.register("name")} />
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.name?.message}
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Instructor</Label>
+                  <Input {...form.register("instructor")} />
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.instructor?.message}
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Students</Label>
+                  <Input
+                    type="number"
+                    {...form.register("students", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  <p className="text-sm text-red-500">
+                    {form.formState.errors.students?.message}
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    {...form.register("status")}
+                    className="w-full border rounded-md p-2"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+
+                <Button type="submit" className="w-full">
+                  {editing ? "Update Course" : "Create Course"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Course</Button>
-          </DialogTrigger>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editing ? "Edit Course" : "Add Course"}
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <Label>Course Name</Label>
-                <Input {...form.register("name")} />
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.name?.message}
-                </p>
-              </div>
-
-              <div>
-                <Label>Instructor</Label>
-                <Input {...form.register("instructor")} />
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.instructor?.message}
-                </p>
-              </div>
-
-              <div>
-                <Label>Students</Label>
-                <Input
-                  type="number"
-                  {...form.register("students", {
-                    valueAsNumber: true,
-                  })}
-                />
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.students?.message}
-                </p>
-              </div>
-
-              <div>
-                <Label>Status</Label>
-                <select
-                  {...form.register("status")}
-                  className="w-full border rounded-md p-2"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-
-              <Button type="submit" className="w-full">
-                {editing ? "Update Course" : "Create Course"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="rounded-lg border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Course</TableHead>
-              <TableHead>Instructor</TableHead>
-              <TableHead>Students</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {courses.map((course) => (
-              <TableRow key={course.id}>
-                <TableCell className="font-medium">{course.name}</TableCell>
-                <TableCell>{course.instructor}</TableCell>
-                <TableCell>{course.students}</TableCell>
-                <TableCell>{course.status}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(course)}>
-                        Edit
-                      </DropdownMenuItem>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className="bg-red-500"
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Are you sure want to delete the data?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone and will permanently
-                              the data.
-                            </AlertDialogDescription>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(course.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogHeader>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <div className="rounded-lg border bg-white">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Course</TableHead>
+                <TableHead>Instructor</TableHead>
+                <TableHead>Students</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+
+            <TableBody>
+              {courses.map((course) => (
+                <TableRow key={course.id}>
+                  <TableCell className="font-medium">{course.name}</TableCell>
+                  <TableCell>{course.instructor}</TableCell>
+                  <TableCell>{course.students}</TableCell>
+                  <TableCell>{course.status}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(course)}>
+                          Edit
+                        </DropdownMenuItem>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                              className="bg-red-500"
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you sure want to delete the data?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone and will
+                                permanently the data.
+                              </AlertDialogDescription>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(course.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogHeader>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <ToastContainer />
+      </ToastProvider>
     </>
   );
 }

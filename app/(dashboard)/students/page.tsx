@@ -41,10 +41,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
-import { StudentFormData, studentSchema } from "@/app/validation/utils";
+import { studentSchema, StudentFormData } from "@/app/validation/schema";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import type { Student } from "@/app/types/type";
-
 
 const STORAGE_KEY = "students-data";
 
@@ -90,7 +89,7 @@ export default function StudentPage() {
   const handleSubmit = (data: StudentFormData) => {
     if (editing) {
       setStudents((prev) =>
-        prev.map((s) => (s.id === editing.id ? { ...s, ...data } : s))
+        prev.map((s) => (s.id === editing.id ? { ...s, ...data } : s)),
       );
       toast({
         title: "Student updated",
@@ -133,18 +132,32 @@ export default function StudentPage() {
                 <div>
                   <Label>Name</Label>
                   <Input {...form.register("name")} />
+                  {form.formState.errors.name && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.name.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <Label>Email</Label>
                   <Input {...form.register("email")} />
+                  {form.formState.errors.email && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <Label>Grade</Label>
                   <Input {...form.register("grade")} />
+                  {form.formState.errors.grade && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.grade.message}
+                    </p>
+                  )}
                 </div>
-
                 <Button type="submit">{editing ? "Update" : "Create"}</Button>
               </form>
             </DialogContent>
@@ -204,7 +217,8 @@ export default function StudentPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This student will be permanently deleted.
+                                This student can be undone and will be
+                                permanently deleted.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
 
@@ -214,7 +228,7 @@ export default function StudentPage() {
                                 className="bg-red-600 hover:bg-red-700"
                                 onClick={() => {
                                   setStudents((prev) =>
-                                    prev.filter((s) => s.id !== student.id)
+                                    prev.filter((s) => s.id !== student.id),
                                   );
                                   toast({
                                     title: "Student deleted",

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Attendance } from "@/app/types/type";
 
 import { SummaryCards } from "@/components/SummaryCards";
 import {
@@ -31,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { AttendanceFormData, attendanceSchema } from "../../validation/utils";
+import { AttendanceFormData, attendanceSchema } from "../../validation/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,13 +44,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-
-
-const initialAttendance: Attendance[] = [
-  { id: 1, studentName: "Rita Bhujel", date: "2026-01-14", status: "Present" },
-  { id: 2, studentName: "Gita Bhandari", date: "2026-01-14", status: "Absent" },
-];
+import { initialAttendance } from "@/app/constants/data";
 
 const summaryData = [
   { title: "Attendance Today", value: 95 + "%" },
@@ -80,7 +75,7 @@ export default function AttendancePage() {
   const handleSubmit = (data: AttendanceFormData) => {
     if (editing) {
       setRecords((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
+        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r)),
       );
     } else {
       setRecords((prev) => [...prev, { id: Date.now(), ...data }]);

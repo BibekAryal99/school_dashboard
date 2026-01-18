@@ -1,15 +1,12 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-<<<<<<< HEAD
-import type { SummaryCard, Props } from "@/app/types/type";
-=======
->>>>>>> c53e6bb3105ea3cdd7f65b4e6265a0b8acc1b6e1
+import type { SummaryCard, SummaryCardsProps } from "@/app/types/type";
 
-export const SummaryCards = ({ data }) => {
+export const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
-      {data.map((item, index) => (
-        <Card key={index}>
+      {data.map((item) => (
+        <Card key={item.title}>
           <CardHeader>
             <CardTitle className="text-sm text-gray-500">
               {item.title}
