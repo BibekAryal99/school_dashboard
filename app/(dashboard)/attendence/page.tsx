@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -63,14 +63,26 @@ const summaryData = [
 ];
 
 export default function AttendancePage() {
-  const [records, setRecords] = useState<Attendance[]>(initialAttendance);
+  const [records, setRecords] = useState<Attendance[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Attendance | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("attendence_data");
+    setRecords(stored ? JSON.parse(stored) : []);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("attendence_data", JSON.stringify(records));
+  }, [records, mounted]);
 
   const form = useForm<AttendanceFormData>({
     resolver: zodResolver(attendanceSchema),
     defaultValues: { studentName: "", date: "", status: "Present" },
   });
+  if (!mounted) return null;
 
   const handleSubmit = (data: AttendanceFormData) => {
     if (editing) {

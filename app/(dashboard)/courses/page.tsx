@@ -42,11 +42,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Course } from "@/app/types/type";
-import { initialCourses } from "@/app/constants/data";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
 
-const STORAGE_KEY = "course_data";
 
 export default function CoursesPage() {
   const { toast, ToastContainer } = useToast();
@@ -56,14 +54,14 @@ export default function CoursesPage() {
   const [editing, setEditing] = useState<Course | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem('course_data');
     setCourses(stored ? JSON.parse(stored) : []);
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
+      localStorage.setItem('course_data', JSON.stringify(courses));
     }
   }, [courses, mounted]);
 
@@ -111,7 +109,7 @@ export default function CoursesPage() {
       title: "Course deleted",
       description: "Course have been deleted successfully",
     });
-  };
+  };  
 
   return (
     <>

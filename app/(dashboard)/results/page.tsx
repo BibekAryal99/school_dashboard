@@ -67,7 +67,6 @@ const computeSummary = (results: Result[]) => [
     value: results.filter((r) => r.grade !== "F").length,
   },
 ];
-const STORAGE_KEY = "results_data";
 
 export default function ResultsPage() {
   const { toast, ToastContainer } = useToast();
@@ -77,14 +76,14 @@ export default function ResultsPage() {
   const [editing, setEditing] = useState<Result | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem("results_data");
     setResults(stored ? JSON.parse(stored) : []);
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
+      localStorage.setItem("results_data", JSON.stringify(results));
     }
   }, [results, mounted]);
 

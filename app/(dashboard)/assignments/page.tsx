@@ -45,6 +45,8 @@ import { MoreHorizontal } from "lucide-react";
 import { AssignmentForm, assignmentSchema } from "../../validation/schema";
 import { initialAssignments } from "@/app/constants/data";
 import type { Assignment } from "@/app/types/type";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@radix-ui/react-toast";
 
 const getSummary = (data: Assignment[]) => [
   { title: "Total Assignments", value: data.length },
@@ -59,6 +61,7 @@ const getSummary = (data: Assignment[]) => [
 ];
 
 export default function AssignmentsPage() {
+  const {toast, ToastContainer} = useToast();
   const [assignments, setAssignments] =
     useState<Assignment[]>(initialAssignments);
   const [open, setOpen] = useState(false);
@@ -78,9 +81,17 @@ export default function AssignmentsPage() {
       setAssignments((prev) =>
         prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a)),
       );
+      toast({
+        title:"Assignment update",
+        description:"Assignment have been updated successfully",
+      })
     } else {
       setAssignments((prev) => [...prev, { id: Date.now(), ...data }]);
     }
+    toast({
+      title:"Assignment created",
+      description:"Assignment have been created successfully",
+    });
 
     setOpen(false);
     setEditing(null);
@@ -105,6 +116,7 @@ export default function AssignmentsPage() {
 
   return (
     <>
+    <ToastProvider>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold p-4">Assignments</h2>
@@ -233,6 +245,8 @@ export default function AssignmentsPage() {
           </TableBody>
         </Table>
       </div>
+      <ToastContainer />
+      </ToastProvider>
     </>
   );
 }

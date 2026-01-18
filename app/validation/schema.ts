@@ -65,6 +65,7 @@ export const productSchema = z.object({
     .max(10000, "price cannot be greater than 10000."),
   category: z.string().min(2, "Category must be at least 2 characters"),
   status: z.enum(["Available", "Out of Stock"]),
+  image:z.string().url("Must be a valid image URL"),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
