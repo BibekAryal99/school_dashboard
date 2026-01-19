@@ -77,26 +77,32 @@ export default function AssignmentsPage() {
   });
 
   const onSubmit = (data: AssignmentForm) => {
-    if (editing) {
-      setAssignments((prev) =>
-        prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a)),
-      );
-      toast({
-        title:"Assignment update",
-        description:"Assignment have been updated successfully",
-      })
-    } else {
-      setAssignments((prev) => [...prev, { id: Date.now(), ...data }]);
-    }
-    toast({
-      title:"Assignment created",
-      description:"Assignment have been created successfully",
-    });
+  if (editing) {
+    
+    setAssignments((prev) =>
+      prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a))
+    );
 
-    setOpen(false);
-    setEditing(null);
-    form.reset();
-  };
+    toast({
+      title: "Assignment updated",
+      description: "Assignment has been updated successfully",
+    });
+  } else {
+    setAssignments((prev) => [
+      ...prev,
+      { id: Date.now(), ...data, },
+    ]);
+
+    toast({
+      title: "Assignment created",
+      description: "Assignment has been created successfully",
+    });
+  }
+  setOpen(false);
+  setEditing(null);
+  form.reset();
+};
+
 
   const handleEdit = (assignment: Assignment) => {
     setEditing(assignment);

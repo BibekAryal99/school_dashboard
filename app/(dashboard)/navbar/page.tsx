@@ -6,7 +6,7 @@ const Navbar = () => {
   return (
     <header className="h-16 border-b bg-white px-6">
   <div className="flex h-full items-center w-full">
-    <h2 className="text-lg font-semibold">
+    <h2 className="text-lg font-semibold ">
       Dashboard
     </h2>
     <div className="ml-auto flex items-center gap-2">

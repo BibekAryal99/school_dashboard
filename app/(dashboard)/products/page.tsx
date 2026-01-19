@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import NextLink from "next/link";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,22 +13,13 @@ import { ToastProvider, useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -40,6 +32,8 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
+import Navbar from "../navbar/page";
+import Rating from "@/components/ui/rating";
 
 export default function ProductsPage() {
   const { toast, ToastContainer } = useToast();
@@ -57,6 +51,11 @@ export default function ProductsPage() {
       category: "",
       status: "Available",
       image: "",
+      description: "",
+      rating:{
+        rate:0,
+        count:0,
+      }
     },
   });
 
@@ -81,10 +80,15 @@ export default function ProductsPage() {
           category: p.category,
           status: "Available",
           image: p.image || "",
+          description: p.description,
+          
         }));
 
         setProducts(formatted);
-        sessionStorage.setItem("product_data_session", JSON.stringify(formatted));
+        sessionStorage.setItem(
+          "product_data_session",
+          JSON.stringify(formatted),
+        );
       } catch {
         toast({ title: "Error", description: "Failed to fetch products" });
       }
@@ -105,36 +109,29 @@ export default function ProductsPage() {
   const handleSubmit = form.handleSubmit(async (data) => {
     if (editing) {
       try {
-        const res = await fetch(`${"https://fakestoreapi.com/products"}/${editing.id}`, {
+        await fetch(`https://fakestoreapi.com/products/${editing.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
-        console.log(res);
-        const updated = { ...editing, ...data };
 
+        const updated = { ...editing, ...data };
         setProducts((prev) =>
           prev.map((p) => (p.id === editing.id ? updated : p)),
         );
-
         toast({ title: "Product updated" });
       } catch {
         toast({ title: "Error", description: "Update failed" });
       }
     } else {
       try {
-        const res = await fetch("https://fakestoreapi.com/products", {
+        await fetch("https://fakestoreapi.com/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
-        console.log(res);
 
-        const newProduct = {
-          id: Date.now(),
-          ...data,
-        };
-
+        const newProduct = { id: Date.now(), ...data };
         setProducts((prev) => [...prev, newProduct]);
         toast({ title: "Product added" });
       } catch {
@@ -151,7 +148,9 @@ export default function ProductsPage() {
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      await fetch(`${"https://fakestoreapi.com/products"}/${id}`, { method: "DELETE" });
+      await fetch(`https://fakestoreapi.com/products/${id}`, {
+        method: "DELETE",
+      });
       toast({ title: "Product deleted" });
     } catch {
       toast({ title: "Error", description: "Delete failed" });
@@ -172,12 +171,19 @@ export default function ProductsPage() {
 
   return (
     <ToastProvider>
+      <Navbar />
       <div className="flex justify-between items-center p-6">
-        <h2 className="text-3xl font-bold">Products</h2>
-        <Button onClick={handleAdd}>Add Product</Button>
+        <h2 className="text-3xl font-bold tracking-tight">Products</h2>
+        <Button
+          onClick={handleAdd}
+          className="bg-indigo-600 hover:bg-indigo-700"
+        >
+          Add Product
+        </Button>
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit Product" : "Add Product"}
@@ -202,7 +208,7 @@ export default function ProductsPage() {
                 {...form.register("price", { valueAsNumber: true })}
               />
               {form.formState.errors.price && (
-                <p>
+                <p className="text-sm text-red-500">
                   {form.formState.errors.price.message}
                 </p>
               )}
@@ -238,66 +244,105 @@ export default function ProductsPage() {
                 </p>
               )}
             </div>
+            
 
-            <Button type="submit" className="w-full">
+            <div>
+              <Label>Description</Label>
+              <Input {...form.register("description")} />
+              {form.formState.errors.description && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.description.message}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700"
+            >
               {editing ? "Update" : "Add"}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
-      <div className="p-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
 
-          <TableBody>
-            {products.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>
-                  {p.image ? (
-                    <div className="relative w-16 h-16">
-                      <Image
-                        src={p.image}
-                        alt={p.title}
-                        fill
-                        className="object-cover rounded"
-                      />
-                    </div>
-                  ) : (
-                    "No Image"
-                  )}
-                </TableCell>
+      <div className="p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {products.map((p) => (
+          <Card
+            key={p.id}
+            className="hover:shadow-2xl transition-shadow duration-300 flex flex-col"
+          >
+            <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center">
+              {p.image ? (
+                <Image
+                  src={p.image}
+                  alt={p.title}
+                  fill
+                  className="object-contain rounded-t-lg"
+                />
+              ) : (
+                <span className="text-gray-400">No Image</span>
+              )}
+            </div>
 
-                <TableCell>{p.title}</TableCell>
-                <TableCell>NPR {p.price}</TableCell>
-                <TableCell>{p.category}</TableCell>
+            <CardContent className="flex-1 flex flex-col justify-between space-y-3 p-4">
+              <div>
+                <CardHeader className="p-0">
+                  <CardTitle className="text-xl font-semibold">
+                    {p.title}
+                  </CardTitle>
+                </CardHeader>
+                <p className="text-gray-500 text-sm mb-1">
+                  Category: {p.category}
+                </p>
 
-                <TableCell>
+                <div className="flex items-center gap-2 mb-1">
                   <span
-                    className={`px-2 py-1 rounded text-white text-sm ${
+                    className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${
                       p.status === "Available" ? "bg-green-600" : "bg-red-600"
                     }`}
                   >
-                    {p.status === "Available" ? "Available" : "Out of Stock"}
+                    {p.status}
                   </span>
-                </TableCell>
+                 
+                  {p.rating && (
+                    <div className="ml-2">
+                      <Rating rate={p.rating.rate} count={p.rating.count} />
+                    </div>
+                  )}
+                </div>
 
-                <TableCell className="text-right space-x-2">
-                  <Button variant="outline" onClick={() => handleEdit(p)}>
+                <p className="mt-2 text-gray-700 text-sm line-clamp-3">
+                  {p.description}
+                </p>
+              </div>
+
+              <div className="mt-4 flex justify-between items-center">
+                <span className="text-indigo-600 font-semibold">
+                  NPR {p.price}
+                </span>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(p)}
+                  >
                     Edit
                   </Button>
 
+                  <NextLink href={`/products/${p.id}`} passHref>
+                    <Button
+                      size="sm"
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      View
+                    </Button>
+                  </NextLink>
+
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button className="bg-red-600 hover:bg-red-700">
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700">
                         Delete
                       </Button>
                     </AlertDialogTrigger>
@@ -311,7 +356,7 @@ export default function ProductsPage() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(p.id)}
+                          onClick={() => handleDelete(p.id ?? 0)}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Delete
@@ -319,11 +364,11 @@ export default function ProductsPage() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <ToastContainer />

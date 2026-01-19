@@ -32,6 +32,7 @@ export type StudentFormData = z.infer<typeof studentSchema>;
 export const attendanceSchema = z.object({
   studentName: z.string().min(2, "Name is required"),
   date: z.string().min(10, "Date is required"),
+  description:z.string(),
   status: z.enum(["Present", "Absent", "Late"]),
 });
 
@@ -57,15 +58,22 @@ export const assignmentSchema = z.object({
 
 export type AssignmentForm = z.infer<typeof assignmentSchema>;
 
+const ratingSchema = z.object({
+  rate: z.number().min(0).max(5),
+  count: z.number().min(0),
+});
+
 export const productSchema = z.object({
-  title: z.string().min(2, "Name must be at least 2 characters"),
-  price: z
-    .number()
-    .min(200, "price cannot be less than 200.")
-    .max(10000, "price cannot be greater than 10000."),
-  category: z.string().min(2, "Category must be at least 2 characters"),
+  id: z.number().optional(),
+  title: z.string().min(1, "Title is required"),
+  price: z.number().min(0, "Price must be positive"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Category is required"),
   status: z.enum(["Available", "Out of Stock"]),
-  image:z.string().url("Must be a valid image URL"),
+  image: z.string().url("Image must be a valid URL"),
+  rating: ratingSchema.optional(),
+  colors: z.array(z.string()).optional(),
+  sizes: z.array(z.string()).optional(),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;

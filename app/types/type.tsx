@@ -1,3 +1,4 @@
+
 export interface Attendance {
   id: number;
   studentName: string;
@@ -29,6 +30,7 @@ export interface Course {
   status: "Active" | "Completed";
 }
 
+<<<<<<< HEAD
 export interface AssignmentForm {
   title: string;
   description?: string;
@@ -36,8 +38,16 @@ export interface AssignmentForm {
   subject: string;
 }
 export interface Assignment extends AssignmentForm {
+=======
+export interface Assignment { 
+>>>>>>> d881a7e (adding changes)
   id: number;
-}
+  title: string;
+  subject: string;
+  dueDate: string;
+  description?: string; 
+};
+
 export interface Student {
   id: number;
   name: string;
@@ -57,10 +67,18 @@ export type Props = {
 
 
 export interface Product {
-  id: number;
+  id?: number;
   title: string;
   price: number;
+  description: string;
   category: string;
   status: "Available" | "Out of Stock";
-  image:string;
-}
+  image: string;
+  rating?: {
+    rate: number;
+    count: number;
+  };
+  colors?: string[];
+  sizes?: string[];  
+};
+
