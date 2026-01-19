@@ -30,7 +30,6 @@ export interface Course {
   status: "Active" | "Completed";
 }
 
-<<<<<<< HEAD
 export interface AssignmentForm {
   title: string;
   description?: string;
@@ -38,9 +37,6 @@ export interface AssignmentForm {
   subject: string;
 }
 export interface Assignment extends AssignmentForm {
-=======
-export interface Assignment { 
->>>>>>> d881a7e (adding changes)
   id: number;
   title: string;
   subject: string;
