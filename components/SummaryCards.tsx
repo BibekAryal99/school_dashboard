@@ -1,9 +1,12 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import type { SummaryCard, Props} from "@/app/types/type";
+import type { SummaryCard } from "@/app/types/type";
 
-export const SummaryCards = ({ data}) => {
+interface Props {
+  data: SummaryCard[];
+}
 
+export const SummaryCards: React.FC<Props> = ({ data }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
       {data.map((item, index) => (
