@@ -51,13 +51,13 @@ export interface Student {
   grade: string;
 }
 
-export type SummaryCard = {
+export interface SummaryCard {
   title: string
   value: string | number
   icon?: React.ReactNode
 }
 
-export type Props = {
+export interface Props  {
   data: SummaryCard[]
 }
 
