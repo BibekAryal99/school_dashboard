@@ -50,6 +50,7 @@ export interface Student {
   grade: string;
 }
 
+<<<<<<< HEAD
 export type SummaryCardProps = {
   title: string;
   value: string | number;
@@ -59,6 +60,18 @@ export type SummaryCardProps = {
 export type Props = {
   data: SummaryCardProps[];
 };
+=======
+export interface SummaryCard {
+  title: string
+  value: string | number
+  icon?: React.ReactNode
+}
+
+export interface Props  {
+  data: SummaryCard[]
+}
+
+>>>>>>> 2ef91a026ace2120a46add25b2eaaead8ddafa50
 
 export interface Product {
   id?: number;
