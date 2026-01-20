@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
 
-import { AssignmentForm, assignmentSchema } from "../../validation/schema";
+import { AssignmentForm, assignmentSchema } from "@/app/validation/schemas/assignment";
 import { initialAssignments } from "@/app/constants/data";
 import type { Assignment } from "@/app/types/type";
 import { useToast } from "@/components/ui/toast";

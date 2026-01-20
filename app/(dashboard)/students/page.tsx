@@ -41,7 +41,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
-import { studentSchema, StudentFormData } from "@/app/validation/schema";
+import { studentSchema, StudentFormData } from "@/app/validation/schemas/student";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import type { Student } from "@/app/types/type";
 

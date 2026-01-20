@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { courseSchema, CourseFormData } from "@/app/validation/schema";
+import { courseSchema, CourseFormData } from "@/app/validation/schemas/course";
 
 import {
   Table,
@@ -44,9 +44,11 @@ import {
 import type { Course } from "@/app/types/type";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
+import { useRouter } from "next/navigation";
 
 
 export default function CoursesPage() {
+  const router = useRouter();
   const { toast, ToastContainer } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -215,6 +217,9 @@ export default function CoursesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(course)}>
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/courses/${course.id}`)}>
+                           View
                         </DropdownMenuItem>
 
                         <AlertDialog>

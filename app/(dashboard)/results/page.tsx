@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ResultFormData, resultSchema } from "@/app/validation/schema";
+import { ResultFormData, resultSchema } from "@/app/validation/schemas/result";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 

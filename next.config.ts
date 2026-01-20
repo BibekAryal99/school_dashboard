@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactStrictMode:true,
-   images: {
-    domains: ["fakestoreapi.com"], 
+  // next.config.ts
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "fakestoreapi.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
-
 export default nextConfig;

@@ -32,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { AttendanceFormData, attendanceSchema } from "../../validation/schema";
+import { AttendanceFormData, attendanceSchema } from "@/app/validation/schemas/attendence";
 import {
   AlertDialog,
   AlertDialogAction,

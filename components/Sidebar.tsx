@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 
 const sidebarItems = [
@@ -7,14 +7,13 @@ const sidebarItems = [
   { name: "Student", href: "/students" },
   { name: "Teacher", href: "/teacher" },
   { name: "Courses", href: "/courses" },
-  {name:"Assignments", href:"/assignments"},
-  { name: "Attendance", href:"/attendence" },
+  { name: "Assignments", href: "/assignments" },
+  { name: "Attendance", href: "/attendence" },
   { name: "Results", href: "/results" },
-  {name:"Products", href:'/products'}
+  { name: "Products", href: "/products" },
 ];
 
 export const Sidebar = () => {
-  const router = useRouter();
   const pathname = usePathname();
 
   return (
@@ -26,18 +25,17 @@ export const Sidebar = () => {
           const isActive = pathname === item.href;
 
           return (
-            <Button
+            <Link
               key={item.name}
-              variant={isActive ? "default" : "ghost"}
-              className={`w-full justify-start ${
+              href={item.href}
+              className={`w-full flex items-center px-4 py-2 rounded-md ${
                 isActive
-                  ? "bg-blue-100"
+                  ? "bg-blue-100 text-blue-700 font-semibold"
                   : "text-gray-700 hover:bg-blue-50"
               }`}
-              onClick={() => router.push(item.href)}
             >
               {item.name}
-            </Button>
+            </Link>
           );
         })}
       </nav>

@@ -28,14 +28,17 @@ export default function ProductViewPage() {
         if (stored) {
           const products: Product[] = JSON.parse(stored);
           const found = products.find((p) => p.id === Number(id));
+
           if (found) {
             setProduct(found);
             setLoading(false);
-            return;
+            return; 
           }
         }
 
         const res = await fetch(`https://fakestoreapi.com/products/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        
         const data = await res.json();
 
         const formatted: Product = {
@@ -43,14 +46,23 @@ export default function ProductViewPage() {
           title: data.title,
           price: data.price,
           category: data.category,
-          status: "Available",
+          status: "Available", 
           image: data.image,
           description: data.description,
           rating: data.rating,
         };
 
+        if (stored) {
+          const products: Product[] = JSON.parse(stored);
+          const updatedProducts = [...products, formatted];
+          sessionStorage.setItem("product_data_session", JSON.stringify(updatedProducts));
+        } else {
+          sessionStorage.setItem("product_data_session", JSON.stringify([formatted]));
+        }
+
         setProduct(formatted);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching product:", error);
         setProduct(null);
       } finally {
         setLoading(false);
@@ -60,12 +72,40 @@ export default function ProductViewPage() {
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const stored = sessionStorage.getItem("product_data_session");
+      if (stored) {
+        const products: Product[] = JSON.parse(stored);
+        const found = products.find((p) => p.id === Number(id));
+        if (found) {
+          setProduct(found);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    window.addEventListener('focus', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
+  }, [id]);
+
   if (loading) {
-    return <div className="p-6 text-center text-lg font-medium">Loading...</div>;
+    return (
+      <div className="p-6 text-center text-lg font-medium">Loading...</div>
+    );
   }
 
   if (!product) {
-    return <div className="p-6 text-center text-lg font-medium">Product not found</div>;
+    return (
+      <div className="p-6 text-center text-lg font-medium">
+        Product not found
+      </div>
+    );
   }
 
   return (
@@ -83,17 +123,29 @@ export default function ProductViewPage() {
 
         <CardContent className="w-full md:w-1/2 p-6 md:p-8 flex flex-col space-y-4">
           <CardHeader className="p-0">
-            <CardTitle className="text-3xl md:text-4xl font-bold">{product.title}</CardTitle>
+            <CardTitle className="text-3xl md:text-4xl font-bold">
+              {product.title}
+            </CardTitle>
           </CardHeader>
 
-          <p className="text-2xl font-semibold text-indigo-600">NPR {product.price}</p>
+          <p className="text-2xl font-semibold text-indigo-600">
+            NPR {product.price}
+          </p>
           <p className="text-gray-500">Category: {product.category}</p>
 
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full bg-green-600 text-white text-sm">{product.status}</span>
+            <span className={`px-3 py-1 rounded-full text-white text-sm ${
+              product.status === "Available" ? "bg-green-600" : "bg-red-600"
+            }`}>
+              {product.status}
+            </span>
 
-            <Rating rate={product.rating?.rate ?? 0} />
-            <span className="text-sm text-gray-500">({product.rating?.count ?? 0})</span>
+            {product.rating && (
+              <Rating
+                rate={Number(product.rating.rate)}
+                count={product.rating.count}
+              />
+            )}
           </div>
 
           <p className="text-gray-700 leading-relaxed">{product.description}</p>
@@ -109,6 +161,7 @@ export default function ProductViewPage() {
                     selectedColor === color ? "border-black" : "border-gray-300"
                   }`}
                   style={{ backgroundColor: color.toLowerCase() }}
+                  aria-label={`Select ${color} color`}
                 />
               ))}
             </div>
@@ -122,8 +175,11 @@ export default function ProductViewPage() {
                   key={size}
                   onClick={() => setSelectedSize(size)}
                   className={`px-3 py-1 rounded border font-medium ${
-                    selectedSize === size ? "border-black bg-gray-100" : "border-gray-300"
+                    selectedSize === size
+                      ? "border-black bg-gray-100"
+                      : "border-gray-300"
                   }`}
+                  aria-label={`Select ${size} size`}
                 >
                   {size}
                 </button>
@@ -131,13 +187,17 @@ export default function ProductViewPage() {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-6">
-            <Link href="/products">
-              <Button variant="outline">Back</Button>
+          <div className="flex flex-col sm:flex-row gap-3 pt-6">
+            <Link href="/products" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full">
+                Back to Products
+              </Button>
             </Link>
 
-            <Link href={`/products/${product.id}/edit`}>
-              <Button className="bg-indigo-600 hover:bg-indigo-700">Edit</Button>
+            <Link href={`/products/${product.id}/edit`} className="w-full sm:w-auto">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 w-full">
+                Edit Product
+              </Button>
             </Link>
           </div>
         </CardContent>

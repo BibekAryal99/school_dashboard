@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Product } from "@/app/types/type";
-import { ProductFormData, productSchema } from "@/app/validation/schema";
+import { ProductFormData, productSchema } from "@/app/validation/schemas/product";
 
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -52,10 +52,10 @@ export default function ProductsPage() {
       status: "Available",
       image: "",
       description: "",
-      rating:{
-        rate:0,
-        count:0,
-      }
+      rating: {
+        rate: 0,
+        count: 0,
+      },
     },
   });
 
@@ -81,7 +81,6 @@ export default function ProductsPage() {
           status: "Available",
           image: p.image || "",
           description: p.description,
-          
         }));
 
         setProducts(formatted);
@@ -244,7 +243,6 @@ export default function ProductsPage() {
                 </p>
               )}
             </div>
-            
 
             <div>
               <Label>Description</Label>
@@ -256,6 +254,40 @@ export default function ProductsPage() {
               )}
             </div>
 
+            <div className="space-y-3">
+              <Label
+                htmlFor="rating-rate"
+                className="text-sm font-medium text-gray-700"
+              >
+                Rating (0-5)
+              </Label>
+              <Input
+                id="rating-rate"
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                {...form.register("rating.rate", { valueAsNumber: true })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                placeholder="4.5"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label
+                htmlFor="rating-count"
+                className="text-sm font-medium text-gray-700"
+              >
+                Rating Count
+              </Label>
+              <Input
+                id="rating-count"
+                type="number"
+                min="0"
+                {...form.register("rating.count", { valueAsNumber: true })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                placeholder="120"
+              />
+            </div>
             <Button
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700"
@@ -304,7 +336,7 @@ export default function ProductsPage() {
                   >
                     {p.status}
                   </span>
-                 
+
                   {p.rating && (
                     <div className="ml-2">
                       <Rating rate={p.rating.rate} count={p.rating.count} />
@@ -370,7 +402,6 @@ export default function ProductsPage() {
           </Card>
         ))}
       </div>
-
       <ToastContainer />
     </ToastProvider>
   );

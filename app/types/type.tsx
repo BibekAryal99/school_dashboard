@@ -1,4 +1,3 @@
-
 export interface Attendance {
   id: number;
   studentName: string;
@@ -12,8 +11,8 @@ export interface Teacher {
   email: string;
   subject: string;
   status: "Active" | "Inactive";
+  joinDate: string;
 }
-
 export interface Result {
   id: number;
   studentName: string;
@@ -41,8 +40,8 @@ export interface Assignment extends AssignmentForm {
   title: string;
   subject: string;
   dueDate: string;
-  description?: string; 
-};
+  description?: string;
+}
 
 export interface Student {
   id: number;
@@ -51,16 +50,15 @@ export interface Student {
   grade: string;
 }
 
-export type SummaryCard = {
-  title: string
-  value: string | number
-  icon?: React.ReactNode
-}
+export type SummaryCardProps = {
+  title: string;
+  value: string | number;
+  icon?: React.ReactNode;
+};
 
 export type Props = {
-  data: SummaryCard[]
-}
-
+  data: SummaryCardProps[];
+};
 
 export interface Product {
   id?: number;
@@ -75,6 +73,5 @@ export interface Product {
     count: number;
   };
   colors?: string[];
-  sizes?: string[];  
-};
-
+  sizes?: string[];
+}
