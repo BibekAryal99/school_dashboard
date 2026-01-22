@@ -71,9 +71,13 @@ export default function ProductsPage() {
 
       try {
         const res = await fetch("https://fakestoreapi.com/products");
-        const data = await res.json();
+        const data:unknown = await res.json();
 
-        const formatted: Product[] = data.map((p: any) => ({
+        if(!Array.isArray(data)){
+          throw new Error("Invalid Api Response");
+        }
+
+        const formatted: Product[] = data.map((p) => ({
           id: p.id,
           title: p.title,
           price: p.price,
@@ -96,7 +100,7 @@ export default function ProductsPage() {
     };
 
     loadProducts();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!mounted) return;

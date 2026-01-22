@@ -51,6 +51,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
 import type { Result } from "@/app/types/type";
+import { useRouter } from "next/navigation";
 
 const computeSummary = (results: Result[]) => [
   { title: "Total Exams", value: results.length },
@@ -69,23 +70,24 @@ const computeSummary = (results: Result[]) => [
 ];
 
 export default function ResultsPage() {
+  const router = useRouter();
   const { toast, ToastContainer } = useToast();
-  const [results, setResults] = useState<Result[]>([]);
+  const [records, setRecords] = useState<Result[]>([]);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Result | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("results_data");
-    setResults(stored ? JSON.parse(stored) : []);
+    setRecords(stored ? JSON.parse(stored) : []);
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem("results_data", JSON.stringify(results));
+      localStorage.setItem("results_data", JSON.stringify(records));
     }
-  }, [results, mounted]);
+  }, [records, mounted]);
 
   const form = useForm<ResultFormData>({
     resolver: zodResolver(resultSchema),
@@ -100,7 +102,7 @@ export default function ResultsPage() {
 
   const handleSubmit = (data: ResultFormData) => {
     if (editing) {
-      setResults((prev) =>
+      setRecords((prev) =>
         prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r)),
       );
       toast({
@@ -108,7 +110,7 @@ export default function ResultsPage() {
         description: "Student result updated successfully",
       });
     } else {
-      setResults((prev) => [...prev, { id: Date.now(), ...data }]);
+      setRecords((prev) => [...prev, { id: Date.now(), ...data }]);
       toast({
         title: "Result added",
         description: "Student result added successfully",
@@ -120,14 +122,14 @@ export default function ResultsPage() {
     form.reset();
   };
 
-  const handleEdit = (result: Result) => {
-    setEditing(result);
-    form.reset(result);
+  const handleEdit = (record: Result) => {
+    setEditing(record);
+    form.reset(record);
     setOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    setResults((prev) => prev.filter((r) => r.id !== id));
+    setRecords((prev) => prev.filter((r) => r.id !== id));
     toast({
       title: "Result deleted",
       description: "Student result removed successfully",
@@ -212,7 +214,7 @@ export default function ResultsPage() {
           </Dialog>
         </div>
 
-        <SummaryCards data={computeSummary(results)} />
+        <SummaryCards data={computeSummary(records)} />
 
         <div className="rounded-lg border bg-white p-10">
           <Table>
@@ -227,14 +229,14 @@ export default function ResultsPage() {
             </TableHeader>
 
             <TableBody>
-              {results.map((result) => (
-                <TableRow key={result.id}>
+              {records.map((record) => (
+                <TableRow key={record.id}>
                   <TableCell className="font-medium">
-                    {result.studentName}
+                    {record.studentName}
                   </TableCell>
-                  <TableCell>{result.examName}</TableCell>
-                  <TableCell>{result.marks}</TableCell>
-                  <TableCell>{result.grade}</TableCell>
+                  <TableCell>{record.examName}</TableCell>
+                  <TableCell>{record.marks}</TableCell>
+                  <TableCell>{record.grade}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -244,7 +246,10 @@ export default function ResultsPage() {
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(result)}>
+                        <DropdownMenuItem onClick={() => router.push(`/results/${record.id}`)}>
+                          View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(record)}>
                           Edit
                         </DropdownMenuItem>
 
@@ -272,7 +277,7 @@ export default function ResultsPage() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(result.id)}
+                                onClick={() => handleDelete(record.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Delete

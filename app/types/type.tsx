@@ -28,20 +28,20 @@ export interface Course {
   students: number;
   status: "Active" | "Completed";
 }
+export const courses: Course[] = [];
 
-export interface AssignmentForm {
-  title: string;
-  description?: string;
-  dueDate: string;
-  subject: string;
-}
-export interface Assignment extends AssignmentForm {
+export interface Assignment  {
   id: number;
   title: string;
-  subject: string;
-  dueDate: string;
-  description?: string;
-}
+  course: string;           
+  dueDate: string;          
+  points: number;
+  status: "Pending" | "Submitted" | "Graded" | "Late";
+  createdAt?: string;    
+};
+
+export type CourseFormData = Omit<Course, "id">;
+export type AssignmentFormData = Omit<Assignment, "id" | "createdAt">;
 
 export interface Student {
   id: number;
@@ -50,7 +50,6 @@ export interface Student {
   grade: string;
 }
 
-<<<<<<< HEAD
 export type SummaryCardProps = {
   title: string;
   value: string | number;
@@ -60,18 +59,6 @@ export type SummaryCardProps = {
 export type Props = {
   data: SummaryCardProps[];
 };
-=======
-export interface SummaryCard {
-  title: string
-  value: string | number
-  icon?: React.ReactNode
-}
-
-export interface Props  {
-  data: SummaryCard[]
-}
-
->>>>>>> 2ef91a026ace2120a46add25b2eaaead8ddafa50
 
 export interface Product {
   id?: number;
@@ -87,4 +74,14 @@ export interface Product {
   };
   colors?: string[];
   sizes?: string[];
+}
+
+export interface Params {
+  params:{
+    id:string;
+  }
+}
+
+export interface Item{
+  id:number;
 }

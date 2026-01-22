@@ -28,7 +28,7 @@ export default function CourseDetailPage() {
       <p><strong>Status:</strong> {course.status}</p>
 
       <div className="flex gap-2 mt-4">
-        <Button onClick={() => router.push(`/course/${course.id}/edit`)}>Edit Course</Button>
+        <Button onClick={() => router.push(`/courses/${course.id}/edit`)}>Edit Course</Button>
         <Button variant="secondary" onClick={() => router.push("/course")}>Back to Courses</Button>
       </div>
     </div>

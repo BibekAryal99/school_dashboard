@@ -29,18 +29,20 @@ export const initialAttendance: Attendance[] = [
 
 export const initialAssignments: Assignment[] = [
   {
-    id: 1,
+    id:1,
     title: "Algebra Homework",
-    description: "This is the assignment for Mathematics problems",
-    subject: "Math",
+    course:"csit",
     dueDate: "2024-02-15",
+    points:100,
+    status:"Pending",
   },
   {
     id: 2,
     title: "Physics Lab Report",
-    description: "This is the assignment for Physics Lab",
-    subject: "Physics",
+    course:"BCA",
     dueDate: "2024-02-18",
+    points:80,
+    status:"Graded",
   },
 ];
 export const stats = [

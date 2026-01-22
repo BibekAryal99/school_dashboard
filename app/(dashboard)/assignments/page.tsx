@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-import { SummaryCards } from "@/components/SummaryCards";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -34,225 +31,269 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal } from "lucide-react";
-
-import { AssignmentForm, assignmentSchema } from "@/app/validation/schemas/assignment";
-import { initialAssignments } from "@/app/constants/data";
-import type { Assignment } from "@/app/types/type";
+import { MoreHorizontal, Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useToast } from "@/components/ui/toast";
-import { ToastProvider } from "@radix-ui/react-toast";
 
-const getSummary = (data: Assignment[]) => [
-  { title: "Total Assignments", value: data.length },
-  {
-    title: "Upcoming",
-    value: data.filter((a) => new Date(a.dueDate) > new Date()).length,
-  },
-  {
-    title: "Overdue",
-    value: data.filter((a) => new Date(a.dueDate) < new Date()).length,
-  },
-];
+import { assignmentSchema } from "@/app/validation/schemas/assignment";
+import type {  AssignmentFormData } from "@/app/types/type";
 
 export default function AssignmentsPage() {
-  const {toast, ToastContainer} = useToast();
-  const [assignments, setAssignments] =
-    useState<Assignment[]>(initialAssignments);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Assignment | null>(null);
 
-  const form = useForm<AssignmentForm>({
+  const form = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
       title: "",
-      subject: "",
+      course: "",
       dueDate: "",
+      points: 100,
+      status: "Pending",
     },
   });
 
-  const onSubmit = (data: AssignmentForm) => {
-  if (editing) {
-    
-    setAssignments((prev) =>
-      prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a))
-    );
+  const STORAGE_KEY = "assignment_data";
 
-    toast({
-      title: "Assignment updated",
-      description: "Assignment has been updated successfully",
-    });
-  } else {
-    setAssignments((prev) => [
-      ...prev,
-      { id: Date.now(), ...data, },
-    ]);
+  const getAssignments = () => {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  };
 
-    toast({
-      title: "Assignment created",
-      description: "Assignment has been created successfully",
-    });
-  }
-  setOpen(false);
-  setEditing(null);
-  form.reset();
-};
+  const saveAssignments = (items: any[]) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  };
 
+  const addAssignment = (assignment: any) => {
+    const updated = [...getAssignments(), assignment];
+    saveAssignments(updated);
+    setAssignments(updated);
+  };
 
-  const handleEdit = (assignment: Assignment) => {
-    setEditing(assignment);
+  const deleteAssignment = (id: number) => {
+    const updated = getAssignments().filter((a:any) => a.id !== id);
+    saveAssignments(updated);
+    setAssignments(updated);
+  };
 
-    form.reset({
-      title: assignment.title,
-      subject: assignment.subject,
-      dueDate: assignment.dueDate,
-    });
+  useEffect(() => {
+    setAssignments(getAssignments());
+  }, []);
 
-    setOpen(true);
+  const onSubmit = (data: AssignmentFormData) => {
+    const newAssignment = {
+      id: Date.now(),
+      ...data,
+      createdAt: new Date().toISOString(),
+    };
+    addAssignment(newAssignment);
+    toast({ title: "Assignment created successfully" });
+    setOpen(false);
+    form.reset();
   };
 
   const handleDelete = (id: number) => {
-    setAssignments((prev) => prev.filter((a) => a.id !== id));
+    deleteAssignment(id);
+    toast({ title: "Assignment deleted" });
   };
 
   return (
-    <>
-    <ToastProvider>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold p-4">Assignments</h2>
-          <p className="text-sm text-gray-500 font-semibold p-5">
-            Create and manage assignments
+          <h1 className="text-3xl font-bold">Assignments</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage course assignments
           </p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="mr-6">Add Assignment</Button>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Assignment
+            </Button>
           </DialogTrigger>
 
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editing ? "Edit Assignment" : "Add Assignment"}
-              </DialogTitle>
+              <DialogTitle>Create Assignment</DialogTitle>
             </DialogHeader>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label>Title</Label>
+                <Label>Assignment Title</Label>
                 <Input {...form.register("title")} />
-                <p className="text-red-500 text-sm">
-                  {form.formState.errors.title?.message}
-                </p>
+                {form.formState.errors.title && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.title.message}
+                  </p>
+                )}
               </div>
 
               <div>
-                <Label>Subject</Label>
-                <Input {...form.register("subject")} />
-                <p className="text-red-500 text-sm">
-                  {form.formState.errors.subject?.message}
-                </p>
+                <Label>Course</Label>
+                <Input placeholder="e.g. Mathematics 101" {...form.register("course")} />
+                {form.formState.errors.course && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.course.message}
+                  </p>
+                )}
               </div>
 
               <div>
                 <Label>Due Date</Label>
                 <Input type="date" {...form.register("dueDate")} />
-                <p className="text-red-500 text-sm">
-                  {form.formState.errors.dueDate?.message}
-                </p>
+                {form.formState.errors.dueDate && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.dueDate.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Points</Label>
+                <Input
+                  type="number"
+                  {...form.register("points", { valueAsNumber: true })}
+                />
+                {form.formState.errors.points && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.points.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <select
+                  {...form.register("status")}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="Graded">Graded</option>
+                  <option value="Late">Late</option>
+                </select>
               </div>
 
               <Button type="submit" className="w-full">
-                {editing ? "Update Assignment" : "Add Assignment"}
+                Create Assignment
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="mb-8">
-        <SummaryCards data={getSummary(assignments)} />
-      </div>
-
-      <div className="border rounded-lg bg-white">
+      <div className="rounded-lg border bg-white">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
-              <TableHead>Subject</TableHead>
+              <TableHead>Course</TableHead>
               <TableHead>Due Date</TableHead>
+              <TableHead>Points</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {assignments.map((assignment) => (
-              <TableRow key={assignment.id}>
-                <TableCell className="font-medium">
-                  {assignment.title}
-                </TableCell>
-                <TableCell>{assignment.subject}</TableCell>
-                <TableCell>{assignment.dueDate}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(assignment)}>
-                        Edit
-                      </DropdownMenuItem>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className="text-red-600"
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Are you sure you want to delete this assignment?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-red-600 hover:bg-red-700"
-                              onClick={() => handleDelete(assignment.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {assignments.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  No assignments yet
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              assignments.map((assignment) => (
+                <TableRow key={assignment.id}>
+                  <TableCell className="font-medium">{assignment.title}</TableCell>
+                  <TableCell>{assignment.course}</TableCell>
+                  <TableCell>{assignment.dueDate}</TableCell>
+                  <TableCell>{assignment.points}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                        assignment.status === "Graded"
+                          ? "bg-green-100 text-green-800"
+                          : assignment.status === "Submitted"
+                          ? "bg-blue-100 text-blue-800"
+                          : assignment.status === "Late"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {assignment.status}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/assignments/${assignment.id}`)}
+                        >
+                          View
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(`/assignments/${assignment.id}/edit`)
+                          }
+                        >
+                          Edit
+                        </DropdownMenuItem>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete assignment?</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => handleDelete(assignment.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
-      <ToastContainer />
-      </ToastProvider>
-    </>
+    </div>
   );
 }
