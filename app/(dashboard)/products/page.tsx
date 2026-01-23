@@ -100,7 +100,7 @@ export default function ProductsPage() {
     };
 
     loadProducts();
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;

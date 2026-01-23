@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-
-import { SummaryCards } from "@/components/SummaryCards";
+import { Controller, useForm } from "react-hook-form";
 import {
   Table,
   TableBody,
@@ -40,12 +38,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal } from "lucide-react";
-import { studentSchema, StudentFormData } from "@/app/validation/schemas/student";
+import { Eye, MoreHorizontal } from "lucide-react";
+import {
+  studentSchema,
+  StudentFormData,
+} from "@/app/validation/schemas/student";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import type { Student } from "@/app/types/type";
+import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const STORAGE_KEY = "students-data";
+const STORAGE_KEY = "students_data";
 
 export default function StudentPage() {
   const { toast, ToastContainer } = useToast();
@@ -53,6 +62,7 @@ export default function StudentPage() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -68,35 +78,41 @@ export default function StudentPage() {
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
-    defaultValues: { name: "", email: "", grade: "" },
+    defaultValues: {
+      name: "",
+      email: "",
+      grade: "A",
+      joinDate: new Date().toISOString().split("T")[0],
+    },
   });
 
   if (!mounted) return null;
 
-  const gradeCounts = students.reduce<Record<string, number>>((acc, s) => {
-    acc[s.grade] = (acc[s.grade] || 0) + 1;
-    return acc;
-  }, {});
 
-  const summaryData = [
-    { title: "Total Students", value: students.length },
-    ...Object.entries(gradeCounts).map(([grade, count]) => ({
-      title: `Grade ${grade}`,
-      value: count,
-    })),
-  ];
 
   const handleSubmit = (data: StudentFormData) => {
-    if (editing) {
+    if (editing?.id) {
       setStudents((prev) =>
-        prev.map((s) => (s.id === editing.id ? { ...s, ...data } : s)),
+        prev.map((s) =>
+          s.id === editing.id
+            ? { ...s, ...data, updatedAt: new Date().toISOString() }
+            : s,
+        ),
       );
       toast({
         title: "Student updated",
         description: "Student details updated successfully",
       });
     } else {
-      setStudents((prev) => [...prev, { id: Date.now(), ...data }]);
+      setStudents((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          ...data,
+          joinDate: data.joinDate || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
     }
     toast({
       title: "Student created",
@@ -105,6 +121,21 @@ export default function StudentPage() {
     setOpen(false);
     setEditing(null);
     form.reset();
+  };
+
+  const handleEdit = (student: Student) => {
+    setEditing(student);
+    form.reset(student);
+  };
+
+  const handleDelete = (id: number) => {
+    const student = students.find((s) => s.id === id);
+    setStudents((prev) => prev.filter((s) => s.id !== id));
+    toast({ title: "Deleted", description: `${student?.name} deleted` });
+  };
+
+  const handleView = (id: number) => {
+    router.push(`/students/${id}`);
   };
 
   return (
@@ -148,13 +179,38 @@ export default function StudentPage() {
                     </p>
                   )}
                 </div>
-
                 <div>
                   <Label>Grade</Label>
-                  <Input {...form.register("grade")} />
-                  {form.formState.errors.grade && (
+                  <Controller
+                    control={form.control}
+                    name="grade"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="grade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A</SelectItem>
+                          <SelectItem value="B+">B+</SelectItem>
+                          <SelectItem value="B">B</SelectItem>
+                          <SelectItem value="C+">C+</SelectItem>
+                          <SelectItem value="C"></SelectItem>
+                          <SelectItem value="D">D</SelectItem>
+                          <SelectItem value="F">F</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label>Join Date *</Label>
+                  <Input type="date" {...form.register("joinDate")} />
+                  {form.formState.errors.joinDate && (
                     <p className="text-sm text-red-500">
-                      {form.formState.errors.grade.message}
+                      {form.formState.errors.joinDate.message}
                     </p>
                   )}
                 </div>
@@ -164,8 +220,6 @@ export default function StudentPage() {
           </Dialog>
         </div>
 
-        <SummaryCards data={summaryData} />
-
         <div className="mt-8 rounded-lg border bg-white p-6">
           <Table>
             <TableHeader>
@@ -173,6 +227,7 @@ export default function StudentPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Grade</TableHead>
+                <TableHead>Join Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -183,6 +238,7 @@ export default function StudentPage() {
                   <TableCell>{student.name}</TableCell>
                   <TableCell>{student.email}</TableCell>
                   <TableCell>{student.grade}</TableCell>
+                  <TableCell>{student.joinDate}</TableCell>
 
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -194,6 +250,12 @@ export default function StudentPage() {
 
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => handleView(student.id)}
+                        >
+                          <Eye className="w-4 h-4 mr-[-5]" />
+                           View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           onClick={() => {
                             setEditing(student);
                             form.reset(student);

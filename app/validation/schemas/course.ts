@@ -9,6 +9,7 @@ export const courseSchema = z.object({
     .min(1, "Students must be a number")
     .min(1, "At least 1 student is required"),
   status: z.enum(["Active", "Completed"]),
+  joinDate:z.string().optional(),
 });
 
 export type CourseFormData = z.infer<typeof courseSchema>;

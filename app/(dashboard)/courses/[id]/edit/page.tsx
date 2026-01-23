@@ -1,207 +1,127 @@
 "use client";
-
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { courseSchema, CourseFormData } from "@/app/validation/schemas/course";
-import { Input } from "@/components/ui/input";
+import { Course, Student } from "@/app/types/type";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { Item } from "@/app/types/type";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@radix-ui/react-toast";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
-export default function EditCoursePage() {
-  const params = useParams();
+const STORAGE_KEY = "course_data";
+
+export default function CourseEditPage() {
+  const { toast, ToastContainer } = useToast();
   const router = useRouter();
-  const [course, setCourse] = useState<CourseFormData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const id = Number(pathname.split("/")[2]);
+  const [course, setCourse] = useState<Course | null>(null);
 
-  const form = useForm<CourseFormData>({
-    resolver: zodResolver(courseSchema),
+  const form = useForm<Course>({
     defaultValues: {
       name: "",
-      instructor: "",
-      students: 0,
-      status: "Active",
+      instructor:"",
+      students:0,
+      status:"Active",
+      joinDate: new Date().toISOString().split("T")[0],
     },
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem("course_data");
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const courses = JSON.parse(stored);
-      const found = courses.find((c: Item) => c.id === Number(params.id));
-
-      if (found) {
-        setCourse(found);
-        form.reset({
-          name: found.name,
-          instructor: found.instructor,
-          students: found.students,
-          status: found.status,
-        });
+      const courses: Course[] = JSON.parse(stored);
+      const c = courses.find((c) => c.id === id);
+      if (c) {
+        setCourse(c);
+        form.reset(c);
       }
     }
-    setLoading(false);
-  }, [params.id, form]);
+  }, [id, form]);
 
-  const onSubmit = (data: CourseFormData) => {
-    const stored = localStorage.getItem("course_data");
-    if (!stored) return;
+  if (!course) return <p className="p-6">Course not found</p>;
 
-    const courses = JSON.parse(stored);
-    const updatedCourses = courses.map((c: Item) =>
-      c.id === Number(params.id) ? { ...c, ...data } : c,
-    );
+  const handleSubmit = (data: Course) => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const courses: Course[] = JSON.parse(stored);
+      const updated = courses.map((c) =>
+        c.id === id ? { ...c, ...data } : c,
+      );
+      toast({
+        title: "Course Updated",
+        description: "Course details updated successfully",
+      });
 
-    localStorage.setItem("course_data", JSON.stringify(updatedCourses));
-    router.push(`/courses/${params.id}`);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    }
+    setTimeout(() => {
+      router.push("/courses");
+    }, 3000);
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 max-w-3xl mx-auto">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!course) {
-    return (
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/courses">
-            <Button variant="ghost" size="icon">
-              ←
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">Course Not Found</h1>
-        </div>
-
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700">
-            The course you are looking for does not exist.
-          </p>
-        </div>
-
-        <Link href="/courses">
-          <Button variant="outline">Back to Courses</Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href={`/courses/${params.id}`}>
-            <Button variant="ghost" size="icon">
-              ←
-            </Button>
-          </Link>
+    <ToastProvider>
+      <div className="max-w-4xl mx-auto p-6 space-y-4">
+        <h1 className="text-3xl font-bold">Edit {course.name}</h1>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Course</h1>
-            <p className="text-gray-500">Update course information</p>
+            <Label>Name</Label>
+            <Input {...form.register("name")} />
+            {form.formState.errors.name && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.name.message}
+              </p>
+            )}
           </div>
-        </div>
-
-        <Link href={`/courses/${params.id}`}>
-          <Button variant="outline">Cancel</Button>
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-lg border shadow-sm p-6">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium">
-                Course Name *
-              </Label>
-              <Input
-                id="name"
-                {...form.register("name")}
-                placeholder="Enter course name"
-              />
-              {form.formState.errors.name && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="instructor" className="text-sm font-medium">
-                Instructor *
-              </Label>
-              <Input
-                id="instructor"
-                {...form.register("instructor")}
-                placeholder="Enter instructor name"
-              />
-              {form.formState.errors.instructor && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.instructor.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="students" className="text-sm font-medium">
-                Number of Students *
-              </Label>
-              <Input
-                id="students"
-                type="number"
-                {...form.register("students", { valueAsNumber: true })}
-                placeholder="1"
-                min="1"
-              />
-              {form.formState.errors.students && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.students.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-sm font-medium">
-                Status *
-              </Label>
-              <select
-                id="status"
-                {...form.register("status")}
-                className="w-full border rounded-md p-2"
-              >
-                <option value="Active">Active</option>
-                <option value="Completed">Completed</option>
-              </select>
-              {form.formState.errors.status && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.status.message}
-                </p>
-              )}
-            </div>
+          <div>
+            <Label>Instructor</Label>
+            <Input {...form.register("instructor")} />
+            {form.formState.errors.instructor && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.instructor.message}
+              </p>
+            )}
           </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button
-              type="submit"
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-            >
-              Update Course
-            </Button>
-            <Link href={`/courses/${params.id}`} className="flex-1">
-              <Button type="button" variant="outline" className="w-full">
-                Cancel
-              </Button>
-            </Link>
+          <div>
+            <Label>Status</Label>
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+          <div>
+            <Label>Join Date</Label>
+            <Input type="date" {...form.register("joinDate")} />
+          </div>
+          <div className="col-span-2 mt-4">
+            <Button type="submit">Update Course</Button>
           </div>
         </form>
       </div>
-    </div>
+      <ToastContainer />
+    </ToastProvider>
   );
 }

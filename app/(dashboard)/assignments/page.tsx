@@ -39,11 +39,10 @@ import {
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useToast } from "@/components/ui/toast";
 
 import { assignmentSchema } from "@/app/validation/schemas/assignment";
-import type {  AssignmentFormData } from "@/app/types/type";
+import type { AssignmentFormData } from "@/app/types/type";
 
 export default function AssignmentsPage() {
   const router = useRouter();
@@ -80,7 +79,7 @@ export default function AssignmentsPage() {
   };
 
   const deleteAssignment = (id: number) => {
-    const updated = getAssignments().filter((a:any) => a.id !== id);
+    const updated = getAssignments().filter((a: any) => a.id !== id);
     saveAssignments(updated);
     setAssignments(updated);
   };
@@ -142,7 +141,10 @@ export default function AssignmentsPage() {
 
               <div>
                 <Label>Course</Label>
-                <Input placeholder="e.g. Mathematics 101" {...form.register("course")} />
+                <Input
+                  placeholder="e.g. Mathematics 101"
+                  {...form.register("course")}
+                />
                 {form.formState.errors.course && (
                   <p className="text-sm text-red-500 mt-1">
                     {form.formState.errors.course.message}
@@ -210,14 +212,19 @@ export default function AssignmentsPage() {
           <TableBody>
             {assignments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-10 text-muted-foreground"
+                >
                   No assignments yet
                 </TableCell>
               </TableRow>
             ) : (
               assignments.map((assignment) => (
                 <TableRow key={assignment.id}>
-                  <TableCell className="font-medium">{assignment.title}</TableCell>
+                  <TableCell className="font-medium">
+                    {assignment.title}
+                  </TableCell>
                   <TableCell>{assignment.course}</TableCell>
                   <TableCell>{assignment.dueDate}</TableCell>
                   <TableCell>{assignment.points}</TableCell>
@@ -227,10 +234,10 @@ export default function AssignmentsPage() {
                         assignment.status === "Graded"
                           ? "bg-green-100 text-green-800"
                           : assignment.status === "Submitted"
-                          ? "bg-blue-100 text-blue-800"
-                          : assignment.status === "Late"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
+                            ? "bg-blue-100 text-blue-800"
+                            : assignment.status === "Late"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
                       {assignment.status}
@@ -247,7 +254,9 @@ export default function AssignmentsPage() {
 
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/assignments/${assignment.id}`)}
+                          onClick={() =>
+                            router.push(`/assignments/${assignment.id}`)
+                          }
                         >
                           View
                         </DropdownMenuItem>
@@ -272,7 +281,9 @@ export default function AssignmentsPage() {
 
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete assignment?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Delete assignment?
+                              </AlertDialogTitle>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>

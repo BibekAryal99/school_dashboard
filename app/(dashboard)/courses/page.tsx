@@ -45,33 +45,10 @@ import {
 import type { Course } from "@/app/types/type";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 
 const STORAGE_KEY = "course_data";
 
-const initialCourses = [
-  {
-    id: 1,
-    name: "Mathematics",
-    instructor: "John Doe",
-    students: 45,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Physics",
-    instructor: "Jane Smith",
-    students: 32,
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Chemistry",
-    instructor: "Robert Johnson",
-    students: 28,
-    status: "Completed",
-  },
-];
+import { initialCourses } from "@/app/constants/data";
 
 const courseService = {
   getAllCourses: () => {
@@ -90,6 +67,7 @@ const courseService = {
     const newCourse: Course = {
       id: Date.now(),
       ...courseData,
+      joinDate: courseData.joinDate ?? new Date().toISOString(),
     };
     courses.push(newCourse);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
@@ -362,10 +340,12 @@ export default function CoursesPage() {
                         >
                           Edit Course
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="p-0">
+                        <DropdownMenuItem className="p-0" onSelect={(e) => e.preventDefault()}>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <button className="w-full text-left px-2 py-1.5 text-red-600 hover:bg-red-50 rounded cursor-pointer">
+                              <button
+                                className="w-full text-left px-2 py-1.5 text-red-600 hover:bg-red-50 rounded cursor-pointer"
+                              >
                                 Delete Course
                               </button>
                             </AlertDialogTrigger>

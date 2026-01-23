@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Attendance } from "@/app/types/type";
+import { AttendanceType } from "@/app/types/type";
 import { AttendanceFormData, attendanceSchema } from "@/app/validation/schemas/attendence";
 
 import { SummaryCards } from "@/components/SummaryCards";
@@ -51,9 +52,9 @@ import {
 export default function AttendancePage() {
   const router = useRouter();
 
-  const [records, setRecords] = useState<Attendance[]>([]);
+  const [records, setRecords] = useState<AttendanceType[]>([]);
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Attendance | null>(null);
+  const [editing, setEditing] = useState<AttendanceType | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -88,9 +89,9 @@ export default function AttendancePage() {
     form.reset();
   };
 
-  const handleEdit = (record: Attendance) => {
+  const handleEdit = (record: AttendanceType) => {
     setEditing(record);
-    form.reset(record);
+    form.reset();
     setOpen(true);
   };
 

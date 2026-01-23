@@ -6,8 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "fakestoreapi.com",
-        pathname: "/**",
+        hostname: "fakestoreapi.com"
       },
     ],
   },

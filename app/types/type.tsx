@@ -1,8 +1,8 @@
-export interface Attendance {
+export interface AttendanceType {
   id: number;
   studentName: string;
   date: string;
-  status: "Present" | "Absent" | "Late";
+  status: "Present" | "Absent" | "Late" | "Excused";
 }
 
 export interface Teacher {
@@ -18,7 +18,7 @@ export interface Result {
   studentName: string;
   examName: string;
   marks: number;
-  grade: "A" | "B+" | "B" | "C+" | "C" | "D" | "F";
+  grade: string;
 }
 
 export interface Course {
@@ -27,18 +27,19 @@ export interface Course {
   instructor: string;
   students: number;
   status: "Active" | "Completed";
+  joinDate: string;
 }
 export const courses: Course[] = [];
 
-export interface Assignment  {
+export interface Assignment {
   id: number;
   title: string;
-  course: string;           
-  dueDate: string;          
+  course: string;
+  dueDate: string;
   points: number;
   status: "Pending" | "Submitted" | "Graded" | "Late";
-  createdAt?: string;    
-};
+  createdAt?: string;
+}
 
 export type CourseFormData = Omit<Course, "id">;
 export type AssignmentFormData = Omit<Assignment, "id" | "createdAt">;
@@ -48,6 +49,7 @@ export interface Student {
   name: string;
   email: string;
   grade: string;
+  joinDate: string;
 }
 
 export type SummaryCardProps = {
@@ -77,11 +79,11 @@ export interface Product {
 }
 
 export interface Params {
-  params:{
-    id:string;
-  }
+  params: {
+    id: string;
+  };
 }
 
-export interface Item{
-  id:number;
+export interface Item {
+  id: number;
 }

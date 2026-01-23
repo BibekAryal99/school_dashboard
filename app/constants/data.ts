@@ -1,5 +1,5 @@
-import { Course } from "@/app/types/type";
-import { Attendance } from "@/app/types/type";
+import { Course, Result } from "@/app/types/type";
+import { AttendanceType } from "@/app/types/type";
 import { Assignment } from "@/app/types/type";
 
 export const initialCourses: Course[] = [
@@ -9,40 +9,58 @@ export const initialCourses: Course[] = [
     instructor: "Mr. Anderson",
     students: 120,
     status: "Active",
+    joinDate: "2026-01-05",
   },
 ];
 
-export const initialAttendance: Attendance[] = [
+export const defaultResults: Result[] = [
   {
-    id: 1,
-    studentName: "Rita Bhujel",
-    date: "2026-01-14",
+    id:1,
+    studentName: "Jane Smith",
+   examName:"1st terminal examination",
+   marks:100,
+    grade: "A",
+  },
+];
+
+
+export const defaultAttendance: AttendanceType[] = [
+  {
+    id: Date.now(),
+    studentName: "Gopal shrestha",
+    date: "2023-05-15",
     status: "Present",
   },
   {
-    id: 2,
-    studentName: "Gita Bhandari",
-    date: "2026-01-14",
+    id: Date.now() + 1,
+    studentName: "Ram karki",
+    date: "2023-05-15",
     status: "Absent",
   },
+  {
+    id: Date.now() + 2,
+    studentName: "shyam baskota",
+    date: "2023-05-15",
+    status: "Late",
+    
+  },
 ];
-
 export const initialAssignments: Assignment[] = [
   {
-    id:1,
+    id: 1,
     title: "Algebra Homework",
-    course:"csit",
+    course: "csit",
     dueDate: "2024-02-15",
-    points:100,
-    status:"Pending",
+    points: 100,
+    status: "Pending",
   },
   {
     id: 2,
     title: "Physics Lab Report",
-    course:"BCA",
+    course: "BCA",
     dueDate: "2024-02-18",
-    points:80,
-    status:"Graded",
+    points: 80,
+    status: "Graded",
   },
 ];
 export const stats = [

@@ -124,7 +124,7 @@ export default function ResultsPage() {
 
   const handleEdit = (record: Result) => {
     setEditing(record);
-    form.reset(record);
+    form.reset();
     setOpen(true);
   };
 
