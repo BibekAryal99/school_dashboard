@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { AttendanceType } from "@/app/types/type";
+import { AttendanceType } from "@/app/types/attendence";
 import { AttendanceFormData, attendanceSchema } from "@/app/validation/schemas/attendence";
 
 import { SummaryCards } from "@/components/SummaryCards";

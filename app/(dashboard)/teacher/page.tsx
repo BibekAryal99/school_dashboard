@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { MoreHorizontal, Eye, Trash, Edit } from "lucide-react";
-import type { Teacher } from "@/app/types/type";
+import type { Teacher } from "@/app/types/teacher";
 import { TeacherFormData, teacherSchema } from "@/app/validation/schemas/teacher";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 

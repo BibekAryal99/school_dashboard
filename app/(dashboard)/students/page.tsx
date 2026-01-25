@@ -1,8 +1,11 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { SummaryCards } from "@/components/SummaryCards";
 import {
   Table,
   TableBody,
@@ -12,21 +15,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,282 +44,207 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Eye, MoreHorizontal } from "lucide-react";
-import {
-  studentSchema,
-  StudentFormData,
-} from "@/app/validation/schemas/student";
-import { ToastProvider, useToast } from "@/components/ui/toast";
-import type { Student } from "@/app/types/type";
-import { useRouter } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const STORAGE_KEY = "students_data";
+import { StudentFormData, studentSchema } from "@/app/validation/schemas/student";
+import { Student } from "@/app/types/student";
+import { inititalStudents } from "@/app/constants/data";
 
 export default function StudentPage() {
-  const { toast, ToastContainer } = useToast();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Student | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+  const [records, setRecords] = useState<Student[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Student | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-    setStudents(stored ? JSON.parse(stored) : []);
+  useEffect(() => {
+    const stored = localStorage.getItem("student_data");
+    if(!stored) localStorage.setItem("student_data", JSON.stringify(inititalStudents));
+    setRecords(stored ? JSON.parse(stored) : []);
     setMounted(true);
   }, []);
+
+  
+
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+      localStorage.setItem("student_data", JSON.stringify(records));
     }
-  }, [students, mounted]);
+  }, [records, mounted]);
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      grade: "A",
-      joinDate: new Date().toISOString().split("T")[0],
-    },
+    defaultValues: { name: "", email:"",grade:"A", joinDate: "" },
   });
 
   if (!mounted) return null;
 
-
-
   const handleSubmit = (data: StudentFormData) => {
-    if (editing?.id) {
-      setStudents((prev) =>
-        prev.map((s) =>
-          s.id === editing.id
-            ? { ...s, ...data, updatedAt: new Date().toISOString() }
-            : s,
-        ),
+    if (editing) {
+      setRecords((prev) =>
+        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
       );
-      toast({
-        title: "Student updated",
-        description: "Student details updated successfully",
-      });
     } else {
-      setStudents((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          ...data,
-          joinDate: data.joinDate || new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ]);
+      setRecords((prev) => [...prev, { id:Date.now(),  ...data }]);
     }
-    toast({
-      title: "Student created",
-      description: "Student details added successfully",
-    });
     setOpen(false);
     setEditing(null);
     form.reset();
   };
 
-  const handleEdit = (student: Student) => {
-    setEditing(student);
-    form.reset(student);
+  const handleEdit = (record: Student) => {
+    setEditing(record);
+    form.reset();
+    setOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    const student = students.find((s) => s.id === id);
-    setStudents((prev) => prev.filter((s) => s.id !== id));
-    toast({ title: "Deleted", description: `${student?.name} deleted` });
+    setRecords((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const handleView = (id: number) => {
-    router.push(`/students/${id}`);
-  };
+  const summaryData = [
+    { title: "Student Enrolled Today", value: "95%" },
+    { title: "A", value: records.filter((a) => a.grade === "A").length },
+    { title: "B+", value: records.filter((a) => a.grade === "B+").length },
+    { title: "B", value: records.filter((a) => a.grade === "B").length },
+    { title: "C+", value: records.filter((a) => a.grade === "C+").length },
+    { title: "C", value: records.filter((a) => a.grade === "C").length },
+    { title: "D", value: records.filter((a) => a.grade === "D").length },
+    { title: "F", value: records.filter((a) => a.grade === "F").length },
+  ];
 
   return (
-    <>
-      <ToastProvider>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">Students</h2>
-
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>Add Student</Button>
-            </DialogTrigger>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editing ? "Edit Student" : "Add Student"}
-                </DialogTitle>
-              </DialogHeader>
-
-              <form
-                onSubmit={form.handleSubmit(handleSubmit)}
-                className="space-y-4"
-              >
-                <div>
-                  <Label>Name</Label>
-                  <Input {...form.register("name")} />
-                  {form.formState.errors.name && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.name.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Email</Label>
-                  <Input {...form.register("email")} />
-                  {form.formState.errors.email && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>Grade</Label>
-                  <Controller
-                    control={form.control}
-                    name="grade"
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="A">A</SelectItem>
-                          <SelectItem value="B+">B+</SelectItem>
-                          <SelectItem value="B">B</SelectItem>
-                          <SelectItem value="C+">C+</SelectItem>
-                          <SelectItem value="C"></SelectItem>
-                          <SelectItem value="D">D</SelectItem>
-                          <SelectItem value="F">F</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div>
-                  <Label>Join Date *</Label>
-                  <Input type="date" {...form.register("joinDate")} />
-                  {form.formState.errors.joinDate && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.joinDate.message}
-                    </p>
-                  )}
-                </div>
-                <Button type="submit">{editing ? "Update" : "Create"}</Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-3xl font-bold">Student</h2>
+          <p className="text-sm text-gray-500 font-semibold">
+            Track and manage student details
+          </p>
         </div>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            form.reset({ name: "", email:'', grade:"A", joinDate: new Date().toISOString().split("T")[0] });
+            setOpen(true);
+          }}
+        >
+          Add Record
+        </Button>
+      </div>
 
-        <div className="mt-8 rounded-lg border bg-white p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Join Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Student" : "Add Student"}</DialogTitle>
+          </DialogHeader>
 
-            <TableBody>
-              {students.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.email}</TableCell>
-                  <TableCell>{student.grade}</TableCell>
-                  <TableCell>{student.joinDate}</TableCell>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div>
+              <Label>Student Name</Label>
+              <Input {...form.register("name")} />
+              <p className="text-sm text-red-500">{form.formState.errors.name?.message}</p>
+            </div>
 
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
+            <div>
+              <Label>Email</Label>
+              <Input {...form.register("email")} />
+              <p className="text-sm text-red-500">{form.formState.errors.email?.message}</p>
+            </div>
 
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleView(student.id)}
-                        >
-                          <Eye className="w-4 h-4 mr-[-5]" />
-                           View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => {
-                            setEditing(student);
-                            form.reset(student);
-                            setOpen(true);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
+            <div>
+              <Label>Join Date</Label>
+              <Input type="date" {...form.register("joinDate")} />
+              <p className="text-sm text-red-500">{form.formState.errors.joinDate?.message}</p>
+            </div>
 
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="text-red-500"
-                              onSelect={(e) => e.preventDefault()}
+            <div>
+              <Label>Grade</Label>
+              <select {...form.register("grade")} className="w-full border rounded-md p-2">
+                <option value="A">A</option>
+                <option value="B+">B+</option>
+                <option value="B">B</option>
+                <option value="C">C+</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="F">F</option>
+              </select>
+            </div>
+
+            <Button type="submit" className="w-full">{editing ? "Update" : "Add"}</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <div className="my-6">
+        <SummaryCards data={summaryData} />
+      </div>
+      <div className="rounded-lg border bg-white">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Student Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Join Date</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {records.map((record) => (
+              <TableRow key={record.id}>
+                <TableCell className="font-medium">{record.name}</TableCell>
+                <TableCell>{record.email}</TableCell>
+                <TableCell>{record.joinDate}</TableCell>
+                <TableCell>{record.grade}</TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => router.push(`/students/${record.id}`)}>
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(record)}>
+                        Edit
+                      </DropdownMenuItem>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem className="text-red-600">
+                            Delete
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-red-600 hover:bg-red-700"
+                              onClick={() => handleDelete(record.id)}
                             >
                               Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This student can be undone and will be
-                                permanently deleted.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => {
-                                  setStudents((prev) =>
-                                    prev.filter((s) => s.id !== student.id),
-                                  );
-                                  toast({
-                                    title: "Student deleted",
-                                    description:
-                                      "Student details removed successfully",
-                                  });
-                                }}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <ToastContainer />
-      </ToastProvider>
-    </>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

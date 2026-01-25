@@ -1,6 +1,8 @@
-import { Course, Result } from "@/app/types/type";
-import { AttendanceType } from "@/app/types/type";
-import { Assignment } from "@/app/types/type";
+import { Course } from "@/app/types/course";
+import { AttendanceType } from "@/app/types/attendence";
+import { Assignment } from "@/app/types/assignment";
+import { Result } from "@/app/types/result";
+import { Student } from "../types/student";
 
 export const initialCourses: Course[] = [
   {
@@ -13,36 +15,77 @@ export const initialCourses: Course[] = [
   },
 ];
 
-export const defaultResults: Result[] = [
+export const inititalStudents: Student[] = [
   {
     id:1,
-    studentName: "Jane Smith",
-   examName:"1st terminal examination",
-   marks:100,
-    grade: "A",
-  },
+    name:"Bibek Aryal",
+    email:"xyz@gmail.com",
+    grade:"A",
+    joinDate:"2026-01-25",
+  }
 ];
 
+export const defaultResults: Result[] = [
+  {
+    id: 1,
+    studentName: "Jane Smith",
+    subject: "Science",
+    score: 30,
+    totalMarks: 100,
+    examName: "1st terminal examination",
+    grade: "A",
+    date: "2026-01-12",
+  },
+  {
+    id: Date.now(),
+    studentName: "John Doe",
+    subject: "Science",
+    score: 40,
+    totalMarks: 100,
+    examName: "Science exam",
+    date: "2023-05-15",
+    grade: "A",
+  },
+  {
+    id: Date.now() + 1,
+    studentName: "Jane Smith",
+    subject: "Math",
+    score: 46,
+    totalMarks: 100,
+    examName: "Math exam",
+    date: "2023-05-16",
+    grade: "B+",
+  },
+  {
+    id: Date.now() + 2,
+    studentName: "Robert Johnson",
+    subject: "EHP",
+    score: 34,
+    totalMarks: 100,
+    examName: "ehp exam",
+    date: "2023-05-17",
+    grade: "B",
+  },
+];
 
 export const defaultAttendance: AttendanceType[] = [
   {
     id: Date.now(),
-    studentName: "Gopal shrestha",
+    studentName: "John Doe",
     date: "2023-05-15",
     status: "Present",
   },
   {
     id: Date.now() + 1,
-    studentName: "Ram karki",
-    date: "2023-05-15",
+    studentName: "Jane Smith",
+    date: "2023-05-16",
     status: "Absent",
   },
   {
     id: Date.now() + 2,
-    studentName: "shyam baskota",
-    date: "2023-05-15",
+    studentName: "Robert Johnson",
+    date: "2023-05-17",
     status: "Late",
-    
   },
 ];
 export const initialAssignments: Assignment[] = [
@@ -140,3 +183,13 @@ export const upcomingEvents = [
     dotColor: "bg-purple-600",
   },
 ];
+
+export const announcement = {
+  id: Date.now(),
+  title: "Mid-Term Exams",
+  message: "Mid-term exams will start from Feb 10. Check the timetable.",
+  category: "Exam",
+  publishedDate: "2026-02-10",
+  isPinned: true,
+};
+

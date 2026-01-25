@@ -42,7 +42,7 @@ import {
   CourseCreateData,
   courseCreateSchema,
 } from "@/app/validation/schemas/course";
-import type { Course } from "@/app/types/type";
+import type { Course } from "@/app/types/course";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 

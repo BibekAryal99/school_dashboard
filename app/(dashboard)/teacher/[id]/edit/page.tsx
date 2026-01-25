@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import type { Teacher } from "@/app/types/type";
+import type { Teacher } from "@/app/types/teacher";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
 

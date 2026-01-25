@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
-import type { Assignment, AssignmentFormData } from "@/app/types/type";
+import type { Assignment, AssignmentFormData } from "@/app/types/assignment";
 import {
   assignmentSchema,
 } from "@/app/validation/schemas/assignment";

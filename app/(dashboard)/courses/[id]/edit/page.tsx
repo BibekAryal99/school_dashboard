@@ -1,5 +1,5 @@
 "use client";
-import { Course, Student } from "@/app/types/type";
+import { Course } from "@/app/types/course";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Product } from "@/app/types/type";
+import { Product } from "@/app/types/product";
 import { ProductFormData, productSchema } from "@/app/validation/schemas/product";
 
 import { Button } from "@/components/ui/button";

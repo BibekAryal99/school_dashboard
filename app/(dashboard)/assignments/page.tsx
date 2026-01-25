@@ -42,7 +42,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/components/ui/toast";
 
 import { assignmentSchema } from "@/app/validation/schemas/assignment";
-import type { AssignmentFormData } from "@/app/types/type";
+import type { AssignmentFormData } from "@/app/types/assignment";
 
 export default function AssignmentsPage() {
   const router = useRouter();

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import type { Assignment } from "@/app/types/type";
+import type { Assignment } from "@/app/types/assignment";
 
 export default function AssignmentViewPage() {
   const params = useParams();
@@ -15,8 +15,10 @@ export default function AssignmentViewPage() {
 
   const getAssignmentById = (id: number) => {
     if (typeof window === "undefined") return undefined;
-    const assignments: Assignment[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return assignments.find(a => a.id === id);
+    const assignments: Assignment[] = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "[]",
+    );
+    return assignments.find((a) => a.id === id);
   };
 
   useEffect(() => {
@@ -45,7 +47,9 @@ export default function AssignmentViewPage() {
       <div className="space-y-4">
         <div className="flex flex-col">
           <Label className="text-gray-500">Course</Label>
-          <p className="text-gray-800 font-medium">{assignment.course || "—"}</p>
+          <p className="text-gray-800 font-medium">
+            {assignment.course || "—"}
+          </p>
         </div>
 
         <div className="flex flex-col">
@@ -67,10 +71,10 @@ export default function AssignmentViewPage() {
               assignment.status === "Graded"
                 ? "text-green-600"
                 : assignment.status === "Submitted"
-                ? "text-blue-600"
-                : assignment.status === "Late"
-                ? "text-red-600"
-                : "text-yellow-600"
+                  ? "text-blue-600"
+                  : assignment.status === "Late"
+                    ? "text-red-600"
+                    : "text-yellow-600"
             }`}
           >
             {assignment.status}
@@ -85,7 +89,9 @@ export default function AssignmentViewPage() {
       </div>
 
       <div className="flex space-x-3 pt-4">
-        <Button onClick={() => router.push(`/assignments/${assignment.id}/edit`)}>
+        <Button
+          onClick={() => router.push(`/assignments/${assignment.id}/edit`)}
+        >
           Edit Assignment
         </Button>
         <Button variant="outline" onClick={() => router.push("/assignments")}>

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import {  usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const sidebarItems = [
   { name: "Dashboard", href: "/" },
@@ -11,6 +11,7 @@ const sidebarItems = [
   { name: "Attendance", href: "/attendence" },
   { name: "Results", href: "/results" },
   { name: "Products", href: "/products" },
+  { name: "Announcements", href: "/announcement" },
 ];
 
 export const Sidebar = () => {

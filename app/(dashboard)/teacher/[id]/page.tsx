@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Teacher } from "@/app/types/type";
+import type { Teacher } from "@/app/types/teacher";
 
 const STORAGE_KEY = "teachers_data";
 
