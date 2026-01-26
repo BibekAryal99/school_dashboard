@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -7,7 +6,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { AttendanceType } from "@/app/types/attendence";
-import { AttendanceFormData, attendanceSchema } from "@/app/validation/schemas/attendence";
+import {
+  AttendanceFormData,
+  attendanceSchema,
+} from "@/app/validation/schemas/attendence";
 
 import { SummaryCards } from "@/components/SummaryCards";
 import {
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"; 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -79,7 +81,7 @@ export default function AttendancePage() {
   const handleSubmit = (data: AttendanceFormData) => {
     if (editing) {
       setRecords((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
+        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r)),
       );
     } else {
       setRecords((prev) => [...prev, { id: Date.now(), ...data }]);
@@ -91,7 +93,11 @@ export default function AttendancePage() {
 
   const handleEdit = (record: AttendanceType) => {
     setEditing(record);
-    form.reset();
+    form.reset({
+      studentName: record.studentName,
+      date: record.date,
+      status: record.status as "Present" | "Absent" | "Late",
+    });
     setOpen(true);
   };
 
@@ -101,8 +107,14 @@ export default function AttendancePage() {
 
   const summaryData = [
     { title: "Attendance Today", value: "95%" },
-    { title: "Present", value: records.filter((a) => a.status === "Present").length },
-    { title: "Absent", value: records.filter((a) => a.status === "Absent").length },
+    {
+      title: "Present",
+      value: records.filter((a) => a.status === "Present").length,
+    },
+    {
+      title: "Absent",
+      value: records.filter((a) => a.status === "Absent").length,
+    },
     { title: "Late", value: records.filter((a) => a.status === "Late").length },
   ];
 
@@ -129,32 +141,46 @@ export default function AttendancePage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Attendance" : "Add Attendance"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit Attendance" : "Add Attendance"}
+            </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div>
               <Label>Student Name</Label>
               <Input {...form.register("studentName")} />
-              <p className="text-sm text-red-500">{form.formState.errors.studentName?.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.studentName?.message}
+              </p>
             </div>
 
             <div>
               <Label>Date</Label>
               <Input type="date" {...form.register("date")} />
-              <p className="text-sm text-red-500">{form.formState.errors.date?.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.date?.message}
+              </p>
             </div>
 
             <div>
               <Label>Status</Label>
-              <select {...form.register("status")} className="w-full border rounded-md p-2">
+              <select
+                {...form.register("status")}
+                className="w-full border rounded-md p-2"
+              >
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Late">Late</option>
               </select>
             </div>
 
-            <Button type="submit" className="w-full">{editing ? "Update" : "Add"}</Button>
+            <Button type="submit" className="w-full">
+              {editing ? "Update" : "Add"}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
@@ -176,7 +202,9 @@ export default function AttendancePage() {
           <TableBody>
             {records.map((record) => (
               <TableRow key={record.id}>
-                <TableCell className="font-medium">{record.studentName}</TableCell>
+                <TableCell className="font-medium">
+                  {record.studentName}
+                </TableCell>
                 <TableCell>{record.date}</TableCell>
                 <TableCell>{record.status}</TableCell>
                 <TableCell className="text-right">
@@ -187,7 +215,9 @@ export default function AttendancePage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/attendence/${record.id}`)}>
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/attendence/${record.id}`)}
+                      >
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(record)}>

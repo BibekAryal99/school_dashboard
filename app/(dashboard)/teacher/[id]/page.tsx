@@ -19,15 +19,35 @@ export default function TeacherDetailPage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const teachers: Teacher[] = JSON.parse(stored);
-      const t = teachers.find(t => t.id === id);
+      const t = teachers.find((t) => t.id === id);
       setTeacher(t || null);
     }
   }, [id]);
 
   if (!teacher)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500 text-lg">Teacher not found.</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="text-center">
+          <svg
+            className="w-16 h-16 text-gray-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            />
+          </svg>
+          <p className="text-gray-500 text-lg font-semibold">
+            Teacher not found
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            The teacher record you are looking for does not exist.
+          </p>
+        </div>
       </div>
     );
 
@@ -36,38 +56,79 @@ export default function TeacherDetailPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">{teacher.name}</CardTitle>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="font-medium text-gray-700">Email</p>
-              <p className="text-gray-900">{teacher.email}</p>
-            </div>
-            <div>
-              <p className="font-medium text-gray-700">Subject</p>
-              <p className="text-gray-900">{teacher.subject}</p>
-            </div>
-            <div>
-              <p className="font-medium text-gray-700">Status</p>
-              <Badge variant={teacher.status === "Active" ? "default" : "destructive"}>
+    <div className="min-h-screen bg-white p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <Card className="border">
+          <CardHeader className="border-b bg-gray-50">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  {teacher.name}
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Teacher Information
+                </p>
+              </div>
+              <Badge
+                variant={
+                  teacher.status === "Active" ? "default" : "destructive"
+                }
+                className={`whitespace-nowrap ${
+                  teacher.status === "Active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
                 {teacher.status}
               </Badge>
             </div>
-            <div>
-              <p className="font-medium text-gray-700">Join Date</p>
-              <p className="text-gray-900">{teacher.joinDate}</p>
+          </CardHeader>
+
+          <CardContent className="pt-6">
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <p className="text-base text-gray-900 mt-1">{teacher.email}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Subject
+                </label>
+                <p className="text-base text-gray-900 mt-1">
+                  {teacher.subject}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Join Date
+                </label>
+                <p className="text-base text-gray-900 mt-1">
+                  {teacher.joinDate}
+                </p>
+              </div>
             </div>
+
+            
+            <div className="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleEdit}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors py-2"
+              >
+                Edit Teacher
+              </Button>
+              <Button
+                onClick={() => router.back()}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors py-2"
+              >
+                Close
+              </Button>
             </div>
-          <div className="pt-4">
-            <Button onClick={handleEdit}>Edit</Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

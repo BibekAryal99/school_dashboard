@@ -1,35 +1,162 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { CourseFormData } from "@/app/validation/schemas/course";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [course, setCourse] = useState<CourseFormData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("course_data");
     const courses = stored ? JSON.parse(stored) : [];
     const found = courses.find((c: any) => c.id === Number(params.id));
     setCourse(found || null);
+    setLoading(false);
   }, [params.id]);
 
-  if (!course) return <p className="p-6">Course not found</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading course details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="text-center">
+          <svg
+            className="w-16 h-16 text-gray-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"
+            />
+          </svg>
+          <p className="text-gray-600 text-lg font-semibold">
+            Course not found
+          </p>
+          <p className="text-gray-500 text-sm mt-1">
+            The course you are looking for does not exist.
+          </p>
+          <Button
+            onClick={() => router.push("/courses")}
+            className="mt-4 bg-blue-600 hover:bg-blue-700"
+          >
+            Back to Courses
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
-      <h1 className="text-3xl font-bold">{course.name}</h1>
-      <p><strong>Instructor:</strong> {course.instructor}</p>
-      <p><strong>Students:</strong> {course.students}</p>
-      <p><strong>Status:</strong> {course.status}</p>
+    <div className="min-h-screen bg-white p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">       
+        <Card className="border">
+          
+          <CardHeader className="border-b bg-gray-50">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  {course.name}
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Course Information</p>
+              </div>
+              <Badge
+                variant={course.status === "Active" ? "default" : "secondary"}
+                className={`whitespace-nowrap ${
+                  course.status === "Active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {course.status}
+              </Badge>
+            </div>
+          </CardHeader>
 
-      <div className="flex gap-2 mt-4">
-        <Button onClick={() => router.push(`/courses/${course.id}/edit`)}>Edit Course</Button>
-        <Button variant="secondary" onClick={() => router.push("/course")}>Back to Courses</Button>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+             
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Instructor
+                </label>
+                <p className="text-base text-gray-900 mt-1 font-medium">
+                  {course.instructor}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Number of Students
+                </label>
+                <p className="text-base text-gray-900 mt-1">
+                  <span className="text-2xl font-bold text-blue-600">
+                    {course.students}
+                  </span>
+                  <span className="text-gray-600 text-sm ml-2">
+                    students enrolled
+                  </span>
+                </p>
+              </div>
+
+        
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Course Status
+                </label>
+                <div className="mt-1">
+                  <Badge
+                    variant={
+                      course.status === "Active" ? "default" : "secondary"
+                    }
+                    className={`${
+                      course.status === "Active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {course.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            
+            <div className="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => router.push(`/courses/${course.id}/edit`)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors py-2"
+              >
+                Edit Course
+              </Button>
+              <Button
+                onClick={() => router.push("/courses")}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors py-2"
+              >
+                Back to Courses
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
