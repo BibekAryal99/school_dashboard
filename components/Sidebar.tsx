@@ -12,6 +12,13 @@ const sidebarItems = [
   { name: "Results", href: "/results" },
   { name: "Products", href: "/products" },
   { name: "Announcements", href: "/announcement" },
+  { name: "Analytics", href: "/analytics" },
+  { name: "Calendar", href: "/calender" },
+  { name: "Messages", href: "/messages" },
+  { name: "Settings", href: "/settings" },
+  { name: "StudentProfile", href: "/studentprofile" },
+  { name: "Resources", href: "/resources" },
+  { name: "fees", href: "/fees" },
 ];
 
 export const Sidebar = () => {
@@ -24,7 +31,6 @@ export const Sidebar = () => {
       <nav className="flex-1 space-y-2">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
-
           return (
             <Link
               key={item.name}

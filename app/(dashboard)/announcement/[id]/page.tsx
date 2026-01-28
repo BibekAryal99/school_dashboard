@@ -6,51 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { AnnouncementType } from "@/app/types/announcement";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const ANNOUNCEMENT_STORAGE_KEY = "announcement_data";
-
-const getAnnouncementsFromStorage = (): AnnouncementType[] => {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-  if (!stored) return [];
-
-  try {
-    return JSON.parse(stored);
-  } catch (error) {
-    console.error("Error parsing announcements:", error);
-    return [];
-  }
-};
-
-const getAnnouncementById = (id: number): AnnouncementType | undefined => {
-  const announcements = getAnnouncementsFromStorage();
-  return announcements.find((a) => a.id === id);
-};
-
-const updateAnnouncement = (
-  id: number,
-  data: Partial<Omit<AnnouncementType, "id">>,
-): AnnouncementType | null => {
-  const announcements = getAnnouncementsFromStorage();
-  const index = announcements.findIndex((a) => a.id === id);
-
-  if (index === -1) return null;
-
-  announcements[index] = { ...announcements[index], ...data };
-  localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
-
-  return announcements[index];
-};
-
-const deleteAnnouncement = (id: number): boolean => {
-  const announcements = getAnnouncementsFromStorage();
-  const filtered = announcements.filter((a) => a.id !== id);
-
-  if (filtered.length === announcements.length) return false;
-
-  localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-};
+const API_BASE_URL = "http://localhost:3001/announcements";
 
 export default function AnnouncementDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -65,42 +21,96 @@ export default function AnnouncementDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = parseInt(params.id as string);
-    const found = getAnnouncementById(id);
+    const fetchAnnouncement = async () => {
+      try {
+        const id = parseInt(params.id as string);
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAnnouncement(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load announcement",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching announcement:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load announcement",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncement();
+  }, [params.id, toast]);
 
-    if (found) {
-      setAnnouncement(found);
-      setFormData(found);
-    }
-    setLoading(false);
-  }, [params.id]);
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!announcement) return;
 
-    const updated = updateAnnouncement(announcement.id, formData);
-    if (updated) {
-      setAnnouncement(updated);
-      setIsEditing(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/${announcement.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setAnnouncement(updated);
+        setIsEditing(false);
+        toast({
+          title: "Announcement saved",
+          description: "Announcement updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save announcement",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving announcement:", error);
       toast({
-        title: "Announcement saved",
-        description: "Announcement updated successfully",
+        title: "Error",
+        description: "Failed to save announcement",
       });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (
       announcement &&
       confirm("Are you sure you want to delete this announcement?")
     ) {
-      const deleted = deleteAnnouncement(announcement.id);
-      if (deleted) {
-        toast({
-          title: "Announcement deleted",
-          description: "Announcement deleted successfully",
+      try {
+        const response = await fetch(`${API_BASE_URL}/${announcement.id}`, {
+          method: "DELETE",
         });
-        setTimeout(() => router.push("/announcement"), 800);
+
+        if (response.ok) {
+          toast({
+            title: "Announcement deleted",
+            description: "Announcement deleted successfully",
+          });
+          setTimeout(() => router.push("/announcement"), 800);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete announcement",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting announcement:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete announcement",
+        });
       }
     }
   };

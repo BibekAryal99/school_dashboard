@@ -28,23 +28,25 @@ export default function CourseEditPage() {
   const form = useForm<Course>({
     defaultValues: {
       name: "",
-      instructor:"",
-      students:0,
-      status:"Active",
+      instructor: "",
+      students: 0,
+      status: "Active",
       joinDate: new Date().toISOString().split("T")[0],
     },
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const courses: Course[] = JSON.parse(stored);
-      const c = courses.find((c) => c.id === id);
-      if (c) {
-        setCourse(c);
-        form.reset(c);
+    setTimeout(() => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const courses: Course[] = JSON.parse(stored);
+        const c = courses.find((c) => c.id === id);
+        if (c) {
+          setCourse(c);
+          form.reset(c);
+        }
       }
-    }
+    }, 2000);
   }, [id, form]);
 
   if (!course) return <p className="p-6">Course not found</p>;
@@ -53,9 +55,7 @@ export default function CourseEditPage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const courses: Course[] = JSON.parse(stored);
-      const updated = courses.map((c) =>
-        c.id === id ? { ...c, ...data } : c,
-      );
+      const updated = courses.map((c) => (c.id === id ? { ...c, ...data } : c));
       toast({
         title: "Course Updated",
         description: "Course details updated successfully",

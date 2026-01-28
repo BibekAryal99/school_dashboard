@@ -1,28 +1,38 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Teacher } from "@/app/types/teacher";
 
-const STORAGE_KEY = "teachers_data";
-
 export default function TeacherDetailPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const id = Number(pathname.split("/").pop());
+  const params = useParams();
   const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const teachers: Teacher[] = JSON.parse(stored);
-      const t = teachers.find((t) => t.id === id);
-      setTeacher(t || null);
-    }
-  }, [id]);
+    const fetchTeacher = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`http://localhost:3001/teachers/${id}`);
+        if (!response.ok) {
+          throw new Error("Teacher not found");
+        }
+        const data = await response.json();
+        setTeacher(data);
+      } catch (error) {
+        console.error("Error fetching teacher:", error);
+        // Redirect to teachers list if teacher not found
+        router.push('/teacher');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeacher();
+  }, [params.id, router]);
 
   if (!teacher)
     return (
@@ -52,7 +62,7 @@ export default function TeacherDetailPage() {
     );
 
   const handleEdit = () => {
-    router.push(`/teacher/${id}/edit`);
+    router.push(`/teacher/${teacher?.id}/edit`);
   };
 
   return (
@@ -73,11 +83,10 @@ export default function TeacherDetailPage() {
                 variant={
                   teacher.status === "Active" ? "default" : "destructive"
                 }
-                className={`whitespace-nowrap ${
-                  teacher.status === "Active"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}
+                className={`whitespace-nowrap ${teacher.status === "Active"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+                  }`}
               >
                 {teacher.status}
               </Badge>
@@ -111,7 +120,6 @@ export default function TeacherDetailPage() {
               </div>
             </div>
 
-            
             <div className="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleEdit}

@@ -4,64 +4,9 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { AttendanceType } from "@/app/types/attendence";
-import { defaultAttendance } from "@/app/constants/data";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const ATTENDANCE_STORAGE_KEY = "attendence_data";
-const getAttendanceFromStorage = (): AttendanceType[] => {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(
-      ATTENDANCE_STORAGE_KEY,
-      JSON.stringify(defaultAttendance),
-    );
-    return defaultAttendance;
-  }
-
-  try {
-    return JSON.parse(stored);
-  } catch (error) {
-    console.error("Error parsing attendance from localStorage:", error);
-    return [];
-  }
-};
-
-const getAttendanceById = (id: number): AttendanceType | undefined => {
-  const attendance = getAttendanceFromStorage();
-  return attendance.find((item) => item.id === id);
-};
-
-const updateAttendance = (
-  id: number,
-  attendanceData: Partial<Omit<AttendanceType, "id">>,
-): AttendanceType | null => {
-  const attendance = getAttendanceFromStorage();
-  const index = attendance.findIndex((s) => s.id === id);
-
-  if (index === -1) return null;
-
-  attendance[index] = { ...attendance[index], ...attendanceData };
-  localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance));
-  return attendance[index];
-};
-
-const deleteAttendance = (id: number): boolean => {
-  const attendance = getAttendanceFromStorage();
-  const initialLength = attendance.length;
-  const filteredAttendance = attendance.filter((s) => s.id !== id);
-
-  if (filteredAttendance.length === initialLength) {
-    return false;
-  }
-
-  localStorage.setItem(
-    ATTENDANCE_STORAGE_KEY,
-    JSON.stringify(filteredAttendance),
-  );
-  return true;
-};
+const API_BASE_URL = "http://localhost:3001/attendance";
 
 export default function AttendenceDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -77,44 +22,101 @@ export default function AttendenceDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = parseInt(params.id as string);
-    const foundAttendance = getAttendanceById(id);
-
-    if (foundAttendance) {
-      setAttendance(foundAttendance);
-      setFormData({
-        studentName: foundAttendance.studentName || "",
-        date: foundAttendance.date || new Date().toISOString().split("T")[0],
-        status: foundAttendance.status || "Present",
-      });
-    }
-    setLoading(false);
-  }, [params.id]);
-
-  const handleSave = () => {
-    if (attendance) {
-      const updatedAttendance = updateAttendance(attendance.id, formData);
-      if (updatedAttendance) {
-        setAttendance(updatedAttendance);
-        setIsEditing(false);
-        toast({title:"Attendence saved", description:"Attendence Record have been saved successfully"})
+    const fetchAttendance = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAttendance(data);
+          setFormData({
+            studentName: data.studentName || "",
+            date: data.date || new Date().toISOString().split("T")[0],
+            status: data.status || "Present",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load attendance record",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching attendance:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load attendance record",
+        });
+      } finally {
+        setLoading(false);
       }
+    };
+    fetchAttendance();
+  }, [params.id, toast]);
+
+  const handleSave = async () => {
+    if (!attendance) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${attendance.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setAttendance(updated);
+        setIsEditing(false);
+        toast({
+          title: "Attendence saved",
+          description: "Attendence Record have been saved successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save attendance record",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving attendance:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save attendance record",
+      });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (
       attendance &&
       confirm("Are you sure you want to delete this attendance record?")
     ) {
-      const deleted = deleteAttendance(attendance.id);
-      if (deleted) {
-        toast({
-          title: "Attendence deleted",
-          description: "Attendence Record deleted successfully",
+      try {
+        const response = await fetch(`${API_BASE_URL}/${attendance.id}`, {
+          method: "DELETE",
         });
-        setTimeout(() => {
-          router.push("/attendence");
+
+        if (response.ok) {
+          toast({
+            title: "Attendence deleted",
+            description: "Attendence Record deleted successfully",
+          });
+          setTimeout(() => {
+            router.push("/attendence");
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete attendance record",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting attendance:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete attendance record",
         });
       }
     }

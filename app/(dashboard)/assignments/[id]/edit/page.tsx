@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
 import type { Assignment, AssignmentFormData } from "@/app/types/assignment";
-import {
-  assignmentSchema,
-} from "@/app/validation/schemas/assignment";
+import { assignmentSchema } from "@/app/validation/schemas/assignment";
+
+const API_BASE_URL = "http://localhost:3001/assignments";
 
 export default function EditAssignmentPage() {
   const params = useParams();
@@ -18,27 +18,7 @@ export default function EditAssignmentPage() {
   const { toast } = useToast();
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
-
-  const STORAGE_KEY = "assignment_data";
-
-  const getAssignmentById = (id: number) => {
-    if (typeof window === "undefined") return undefined;
-    const assignments: Assignment[] = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "[]",
-    );
-    return assignments.find((a) => a.id === id);
-  };
-
-  const updateAssignment = (id: number, data: Partial<Assignment>) => {
-    const assignments: Assignment[] = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "[]",
-    );
-    const updated = assignments.map((a) =>
-      a.id === id ? { ...a, ...data } : a,
-    );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  };
-
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentSchema),
@@ -52,26 +32,68 @@ export default function EditAssignmentPage() {
   });
 
   useEffect(() => {
-    if (!params.id) return;
-    const found = getAssignmentById(Number(params.id));
-    if (found) {
-      setAssignment(found);
-      form.reset({
-        title: found.title,
-        course: found.course,
-        dueDate: found.dueDate,
-        points: found.points,
-        status: found.status,
+    const fetchAssignment = async () => {
+      try {
+        if (!params.id) return;
+        const response = await fetch(`${API_BASE_URL}/${params.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAssignment(data);
+          form.reset({
+            title: data.title,
+            course: data.course,
+            dueDate: data.dueDate,
+            points: data.points,
+            status: data.status,
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load assignment",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching assignment:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load assignment",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignment();
+  }, [params.id, form, toast]);
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (!assignment) return <div className="p-4">Assignment not found</div>;
+
+  const onSubmit: SubmitHandler<AssignmentFormData> = async (data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${assignment.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        toast({ title: "Assignment updated successfully" });
+        router.push(`/assignments/${assignment.id}`);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update assignment",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update assignment",
       });
     }
-  }, [params.id, form]);
-
-  if (!assignment) return <div className="p-4">Loading...</div>;
-
-  const onSubmit:SubmitHandler<AssignmentFormData> = (data) => {
-    updateAssignment(assignment.id, data);
-    toast({ title: "Assignment updated successfully" });
-    router.push(`/assignments/${assignment.id}`);
   };
 
   return (

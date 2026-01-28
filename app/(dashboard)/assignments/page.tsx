@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -37,73 +36,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/components/ui/toast";
 
-import { assignmentSchema } from "@/app/validation/schemas/assignment";
-import type { AssignmentFormData } from "@/app/types/assignment";
+import useAssignment from "@/app/hooks/use-assignment";
 
 export default function AssignmentsPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [open, setOpen] = useState(false);
+  const {
+    router,
+    records: assignments,
+    open,
+    setOpen,
+    editing,
+    setEditing,
+    form,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+  } = useAssignment();
 
-  const form = useForm<AssignmentFormData>({
-    resolver: zodResolver(assignmentSchema),
-    defaultValues: {
-      title: "",
-      course: "",
-      dueDate: "",
-      points: 100,
-      status: "Pending",
-    },
-  });
-
-  const STORAGE_KEY = "assignment_data";
-
-  const getAssignments = () => {
-    if (typeof window === "undefined") return [];
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  };
-
-  const saveAssignments = (items: any[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  };
-
-  const addAssignment = (assignment: any) => {
-    const updated = [...getAssignments(), assignment];
-    saveAssignments(updated);
-    setAssignments(updated);
-  };
-
-  const deleteAssignment = (id: number) => {
-    const updated = getAssignments().filter((a: any) => a.id !== id);
-    saveAssignments(updated);
-    setAssignments(updated);
-  };
-
-  useEffect(() => {
-    setAssignments(getAssignments());
-  }, []);
-
-  const onSubmit = (data: AssignmentFormData) => {
-    const newAssignment = {
-      id: Date.now(),
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    addAssignment(newAssignment);
-    toast({ title: "Assignment created successfully" });
-    setOpen(false);
-    form.reset();
-  };
-
-  const handleDelete = (id: number) => {
-    deleteAssignment(id);
-    toast({ title: "Assignment deleted" });
-  };
+  const assignmentStatusOptions = ["Pending", "Submitted", "Graded", "Late"];
 
   return (
     <div className="space-y-6">
@@ -128,7 +78,10 @@ export default function AssignmentsPage() {
               <DialogTitle>Create Assignment</DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
               <div>
                 <Label>Assignment Title</Label>
                 <Input {...form.register("title")} />
@@ -181,10 +134,11 @@ export default function AssignmentsPage() {
                   {...form.register("status")}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Submitted">Submitted</option>
-                  <option value="Graded">Graded</option>
-                  <option value="Late">Late</option>
+                  {assignmentStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -289,7 +243,7 @@ export default function AssignmentsPage() {
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 className="bg-red-600 hover:bg-red-700"
-                                onClick={() => handleDelete(assignment.id)}
+                                onClick={() => handleDelete(Number(assignment.id))}
                               >
                                 Delete
                               </AlertDialogAction>

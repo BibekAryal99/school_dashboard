@@ -1,10 +1,7 @@
+ "use client";
 
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import useStudent from "@/app/hooks/use-student";
 import { SummaryCards } from "@/components/SummaryCards";
 import {
   Table,
@@ -31,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { Loader, MoreHorizontal } from "lucide-react";
 
 import {
   AlertDialog,
@@ -44,72 +41,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { StudentFormData, studentSchema } from "@/app/validation/schemas/student";
-import { Student } from "@/app/types/student";
-import { inititalStudents } from "@/app/constants/data";
 
 export default function StudentPage() {
-  const router = useRouter();
+  const {
+    router,
+    records,
+    open,
+    setOpen,
+    editing,
+    setEditing,
+    form,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+  } = useStudent();
 
-  const [records, setRecords] = useState<Student[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Student | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("student_data");
-    if(!stored) localStorage.setItem("student_data", JSON.stringify(inititalStudents));
-    setRecords(stored ? JSON.parse(stored) : []);
-    setMounted(true);
-  }, []);
-
-  
-
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("student_data", JSON.stringify(records));
-    }
-  }, [records, mounted]);
-
-  const form = useForm<StudentFormData>({
-    resolver: zodResolver(studentSchema),
-    defaultValues: { name: "", email:"",grade:"A", joinDate: "" },
-  });
-
-  if (!mounted) return null;
-
-  const handleSubmit = (data: StudentFormData) => {
-    if (editing) {
-      setRecords((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
-      );
-    } else {
-      setRecords((prev) => [...prev, { id:Date.now(),  ...data }]);
-    }
-    setOpen(false);
-    setEditing(null);
-    form.reset();
-  };
-
-  const handleEdit = (record: Student) => {
-    setEditing(record);
-    form.reset();
-    setOpen(true);
-  };
-
-  const handleDelete = (id: number) => {
-    setRecords((prev) => prev.filter((r) => r.id !== id));
-  };
+  const studentGradeOptions = ["A", "B+", "B", "C+", "C", "D", "F"];
 
   const summaryData = [
-    { title: "Student Enrolled Today", value: "95%" },
-    { title: "A", value: records.filter((a) => a.grade === "A").length },
-    { title: "B+", value: records.filter((a) => a.grade === "B+").length },
-    { title: "B", value: records.filter((a) => a.grade === "B").length },
-    { title: "C+", value: records.filter((a) => a.grade === "C+").length },
-    { title: "C", value: records.filter((a) => a.grade === "C").length },
-    { title: "D", value: records.filter((a) => a.grade === "D").length },
-    { title: "F", value: records.filter((a) => a.grade === "F").length },
+    { title: "Total Students", value: records.length.toString(), change: "+12%" },
+    { title: "Active Students", value: records.filter(r => r.grade !== 'F').length.toString(), change: "+5%" },
+    { title: "Average Grade", value: "B+", change: "+2%" },
   ];
 
   return (
@@ -124,7 +76,12 @@ export default function StudentPage() {
         <Button
           onClick={() => {
             setEditing(null);
-            form.reset({ name: "", email:'', grade:"A", joinDate: new Date().toISOString().split("T")[0] });
+            form.reset({
+              name: "",
+              email: "",
+              grade: "A",
+              joinDate: new Date().toISOString().split("T")[0],
+            });
             setOpen(true);
           }}
         >
@@ -135,42 +92,64 @@ export default function StudentPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Student" : "Add Student"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit Student" : "Add Student"}
+            </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div>
               <Label>Student Name</Label>
               <Input {...form.register("name")} />
-              <p className="text-sm text-red-500">{form.formState.errors.name?.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.name?.message}
+              </p>
+
             </div>
 
             <div>
               <Label>Email</Label>
               <Input {...form.register("email")} />
-              <p className="text-sm text-red-500">{form.formState.errors.email?.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.email?.message}
+              </p>
             </div>
 
             <div>
               <Label>Join Date</Label>
               <Input type="date" {...form.register("joinDate")} />
-              <p className="text-sm text-red-500">{form.formState.errors.joinDate?.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.joinDate?.message}
+              </p>
             </div>
 
             <div>
               <Label>Grade</Label>
-              <select {...form.register("grade")} className="w-full border rounded-md p-2">
-                <option value="A">A</option>
-                <option value="B+">B+</option>
-                <option value="B">B</option>
-                <option value="C">C+</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="F">F</option>
+              <select
+                {...form.register("grade")}
+                className="w-full border rounded-md p-2"
+              >
+              {studentGradeOptions.map((grade) => (
+                <option key={grade} value={grade}>{grade}</option>
+              ))}
               </select>
             </div>
 
-            <Button type="submit" className="w-full">{editing ? "Update" : "Add"}</Button>
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader className="animate-spin h-4 w-4 mr-2" />
+                  {editing ? "Updating..." : "Adding..."}
+                </>
+              ) : editing ? (
+                "Update Student"
+              ) : (
+                "Add Student"
+              )}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
@@ -205,7 +184,9 @@ export default function StudentPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/students/${record.id}`)}>
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/students/${record.id}`)}
+                      >
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(record)}>
@@ -230,7 +211,7 @@ export default function StudentPage() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-600 hover:bg-red-700"
-                              onClick={() => handleDelete(record.id)}
+                              onClick={() => handleDelete(Number(record.id))}
                             >
                               Delete
                             </AlertDialogAction>

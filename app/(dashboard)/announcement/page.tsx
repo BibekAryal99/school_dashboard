@@ -1,15 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-import { AnnouncementType } from "@/app/types/announcement";
-import {
-  AnnouncementFormData,
-  announcementSchema,
-} from "@/app/validation/schemas/announcement";
+import React from "react";
+import useAnnouncement from "@/app/hooks/use-announcement";
 
 import {
   Table,
@@ -51,64 +43,20 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AnnouncementPage() {
-  const router = useRouter();
+  const {
+    router,
+    records,
+    open,
+    setOpen,
+    editing,
+    setEditing,
+    form,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+  } = useAnnouncement();
 
-  const [records, setRecords] = useState<AnnouncementType[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<AnnouncementType | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("announcement_data");
-    setRecords(stored ? JSON.parse(stored) : []);
-   setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("announcement_data", JSON.stringify(records));
-    }
-  }, [records, mounted]);
-
-  const form = useForm<AnnouncementFormData>({
-    resolver: zodResolver(announcementSchema),
-    defaultValues: {
-      title: "",
-      message: "",
-      category: "General",
-      publishedDate: "",
-      isPinned:false,
-    },
-  });
-
-  if (!mounted) return null;
-
-  const handleSubmit = (data: AnnouncementFormData) => {
-    if (editing) {
-      setRecords((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...data } : r))
-      );
-    } else {
-      setRecords((prev) => [...prev, { id: Date.now(), ...data }]);
-    }
-    setOpen(false);
-    setEditing(null);
-    form.reset();
-  };
-  const handleEdit = (record: AnnouncementType) => {
-    setEditing(record);
-    form.reset({
-      title: record.title,
-      message: record.message,
-      category: record.category,
-      publishedDate: record.publishedDate,
-      isPinned: record.isPinned || false,
-    });
-    setOpen(true);
-  };
-  const handleDelete = (id: number) => {
-    setRecords((prev) => prev.filter((r) => r.id !== id));
-  };
+  const categoryOptions = ["General", "Exam", "Event", "Holiday", "Urgent"];
 
   return (
     <div className="p-6">
@@ -163,11 +111,11 @@ export default function AnnouncementPage() {
                 {...form.register("category")}
                 className="w-full border rounded-md p-2"
               >
-                <option value="General">General</option>
-                <option value="Exam">Exam</option>
-                <option value="Event">Event</option>
-                <option value="Holiday">Holiday</option>
-                <option value="Urgent">Urgent</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </div>
 

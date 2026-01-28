@@ -6,45 +6,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Result } from "@/app/types/result";
-import { defaultResults } from "@/app/constants/data";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const RESULT_STORAGE_KEY = "results_data";
-
-const getResultFromStorage = (): Result[] => {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(RESULT_STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(defaultResults));
-    return defaultResults;
-  }
-
+const getResultById = async (id: string): Promise<Result | undefined> => {
   try {
-    return JSON.parse(stored);
+    const response = await fetch(`http://localhost:3001/results/${id}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch result: ${response.status}`);
+    }
+    return await response.json();
   } catch (error) {
-    console.error("Error parsing results from localStorage:", error);
-    return [];
+    console.error('Error fetching result:', error);
+    return undefined;
   }
 };
 
-const getResultById = (id: number): Result | undefined => {
-  const result = getResultFromStorage();
-  return result.find((item) => item.id === id);
-};
-
-const updateResult = (
-  id: number,
+const updateResult = async (
+  id: string,
   resultData: Partial<Omit<Result, "id">>,
-): Result | null => {
-  const result = getResultFromStorage();
-  const index = result.findIndex((r) => r.id === id);
+): Promise<Result | null> => {
+  try {
+    const response = await fetch(`http://localhost:3001/results/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resultData),
+    });
 
-  if (index === -1) return null;
+    if (!response.ok) {
+      throw new Error(`Failed to update result: ${response.status}`);
+    }
 
-  result[index] = { ...result[index], ...resultData };
-  localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(result));
-  return result[index];
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating result:', error);
+    return null;
+  }
 };
 
 export default function ResultEditPage() {
@@ -63,34 +61,50 @@ export default function ResultEditPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = parseInt(params.id as string);
-    const foundResult = getResultById(id);
+    const fetchResult = async () => {
+      const id = params.id as string;
+      const foundResult = await getResultById(id);
 
-    if (foundResult) setResult(foundResult);
-    setFormData({
-      studentName: foundResult?.studentName || "",
-      subject: foundResult?.subject || "",
-      score: foundResult?.score || 0,
-      totalMarks: foundResult?.totalMarks || 100,
-      examName: foundResult?.examName || "",
-      date: foundResult?.date || new Date().toISOString().split("T")[0],
-      grade: foundResult?.grade || "A",
-    });
+      if (foundResult) {
+        setResult(foundResult);
+        setFormData({
+          studentName: foundResult?.studentName || "",
+          subject: foundResult?.subject || "",
+          score: foundResult?.score || 0,
+          totalMarks: foundResult?.totalMarks || 100,
+          examName: foundResult?.examName || "",
+          date: foundResult?.date || new Date().toISOString().split("T")[0],
+          grade: foundResult?.grade || "A",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Result not found",
+        });
+        router.push('/results');
+      }
 
-    setLoading(false);
+      setLoading(false);
+    }
+    fetchResult();
   }, [params.id]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (result) {
-      const updatedResult = updateResult(result.id, formData);
+      const updatedResult = await updateResult(result.id.toString(), formData);
       if (updatedResult) {
         toast({
           title: "Result saved",
-          description: "Result have been saved successfully",
+          description: "Result has been saved successfully",
         });
         setTimeout(() => {
           router.push(`/results/${result.id}`);
-        }, 3000);
+        }, 1000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save result",
+        });
       }
     }
   };
@@ -218,7 +232,7 @@ export default function ResultEditPage() {
                 id="grade"
                 value={formData.grade || "A"}
                 onChange={(e) =>
-                  setFormData({ ...formData, grade: e.target.value as any })
+                  setFormData({ ...formData, grade: e.target.value as Result["grade"] })
                 }
                 className="w-full h-12 rounded-md border border-input bg-background px-3 py-2 text-lg"
               >

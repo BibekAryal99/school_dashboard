@@ -1,5 +1,5 @@
 export interface Assignment {
-  id: number;
+  id: string | number;
   title: string;
   course: string;
   dueDate: string;

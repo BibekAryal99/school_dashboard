@@ -1,5 +1,5 @@
 export interface AttendanceType {
-  id: number;
+  id: string | number;
   studentName: string;
   date: string;
   status: "Present" | "Absent" | "Late" | "Excused";

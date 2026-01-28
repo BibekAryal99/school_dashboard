@@ -5,51 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AttendanceType } from "@/app/types/attendence";
-import { defaultAttendance, inititalStudents } from "@/app/constants/data";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import { Student } from "@/app/types/student";
 
-const STUDENT_STORAGE_KEY = "student_data";
-
-const getStudentFromStorage = (): Student[] => {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(STUDENT_STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(STUDENT_STORAGE_KEY, JSON.stringify(inititalStudents));
-    return inititalStudents;
-  }
-
-  try {
-    return JSON.parse(stored);
-  } catch (error) {
-    console.error("Error parsing student from localStorage:", error);
-    return [];
-  }
-};
-
-const getStudentById = (id: number): Student | undefined => {
-  const student = getStudentFromStorage();
-  return student.find((item) => item.id === id);
-};
-
-const updateStudent = (
-  id: number,
-  studentData: Partial<Omit<Student, "id">>,
-): Student | null => {
-  const student = getStudentFromStorage();
-  const index = student.findIndex((s) => s.id === id);
-
-  if (index === -1) return null;
-
-  student[index] = { ...student[index], ...studentData };
-  localStorage.setItem(
-    STUDENT_STORAGE_KEY,
-    JSON.stringify(STUDENT_STORAGE_KEY),
-  );
-  return student[index];
-};
+const API_BASE_URL = "http://localhost:3001/students";
 
 export default function StudentEditPage() {
   const params = useParams();
@@ -65,34 +24,71 @@ export default function StudentEditPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = parseInt(params.id as string);
-    const foundStudent = getStudentById(id);
+    const fetchStudent = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setStudent(data);
+          setFormData({
+            name: data.name || "",
+            email: data.email || "",
+            joinDate: data.joinDate || new Date().toISOString().split("T")[0],
+            grade: data.grade || "A",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Student not found",
+          });
+          router.push("/students");
+        }
+      } catch (error) {
+        console.error("Error fetching student:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load student",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudent();
+  }, [params.id, toast]);
 
-    if (foundStudent) {
-      setStudent(foundStudent);
-      setFormData({
-        name: foundStudent.name || "",
-        email: foundStudent.email || "",
-        joinDate:
-          foundStudent.joinDate || new Date().toISOString().split("T")[0],
-        grade: foundStudent.grade || "A",
+  const handleSave = async () => {
+    if (!student) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${student.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
-    }
-    setLoading(false);
-  }, [params.id]);
 
-  const handleSave = () => {
-    if (student) {
-      const updatedStudent = updateStudent(student.id, formData);
-      if (updatedStudent) {
+      if (response.ok) {
         toast({
           title: "Student record saved",
           description: "Student Record have been saved successfully",
         });
         setTimeout(() => {
-          router.push(`/student/${student.id}`);
+          router.push(`/students/${student.id}`);
         }, 3000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save student",
+        });
       }
+    } catch (error) {
+      console.error("Error saving student:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save student",
+      });
     }
   };
 

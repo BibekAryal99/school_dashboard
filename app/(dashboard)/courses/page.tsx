@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,121 +36,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
-import {
-  CourseCreateData,
-  courseCreateSchema,
-} from "@/app/validation/schemas/course";
-import type { Course } from "@/app/types/course";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-const STORAGE_KEY = "course_data";
-
-import { initialCourses } from "@/app/constants/data";
-
-const courseService = {
-  getAllCourses: () => {
-    if (typeof window === "undefined") return [];
-
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialCourses));
-      return initialCourses;
-    }
-    return JSON.parse(stored);
-  },
-
-  createCourse: (courseData: CourseCreateData) => {
-    const courses = courseService.getAllCourses();
-    const newCourse: Course = {
-      id: Date.now(),
-      ...courseData,
-      joinDate: courseData.joinDate ?? new Date().toISOString(),
-    };
-    courses.push(newCourse);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    return newCourse;
-  },
-
-  updateCourse: (id: number, updatedData: Partial<Course>) => {
-    const courses = courseService.getAllCourses();
-    const index = courses.findIndex((c: Course) => c.id === id);
-    if (index === -1) return null;
-
-    courses[index] = { ...courses[index], ...updatedData };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    return courses[index];
-  },
-
-  deleteCourse: (id: number) => {
-    const courses = courseService.getAllCourses();
-    const filtered = courses.filter((c: Course) => c.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-    return true;
-  },
-};
+import useCourse from "@/app/hooks/use-course";
 
 export default function CoursesPage() {
-  const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-
   const {
-    register,
+    router,
+    records: courses,
+    open,
+    setOpen,
+    editing,
+    setEditing,
+    form,
     handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<CourseCreateData>({
-    resolver: zodResolver(courseCreateSchema),
-    defaultValues: {
-      name: "",
-      instructor: "",
-      students: 0,
-      status: "Active",
-    },
-  });
-
-  useEffect(() => {
-    setCourses(courseService.getAllCourses());
-    setMounted(true);
-  }, []);
-
-  const onSubmit = async (data: CourseCreateData) => {
-    try {
-      const newCourse = courseService.createCourse(data);
-      setCourses(courseService.getAllCourses());
-      setOpen(false);
-      reset();
-
-      setSuccessMessage(`Course "${newCourse.name}" added successfully!`);
-      setTimeout(() => setSuccessMessage(""), 3000);
-
-      router.replace("/courses");
-    } catch (error) {
-      console.error("Error adding course:", error);
-      alert("Failed to add course. Please try again.");
-    }
-  };
-
-  const handleDelete = (id: number, name: string) => {
-    if (courseService.deleteCourse(id)) {
-      setCourses(courseService.getAllCourses());
-      setSuccessMessage(`Course "${name}" deleted successfully!`);
-      setTimeout(() => setSuccessMessage(""), 3000);
-    }
-  };
-
-  if (!mounted) {
-    return (
-      <div className="p-6">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        </div>
-      </div>
-    );
-  }
+    handleEdit,
+    handleDelete,
+  } = useCourse();
 
   return (
     <div className="p-6">
@@ -340,12 +238,13 @@ export default function CoursesPage() {
                         >
                           Edit Course
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="p-0" onSelect={(e) => e.preventDefault()}>
+                        <DropdownMenuItem
+                          className="p-0"
+                          onSelect={(e) => e.preventDefault()}
+                        >
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <button
-                                className="w-full text-left px-2 py-1.5 text-red-600 hover:bg-red-50 rounded cursor-pointer"
-                              >
+                              <button className="w-full text-left px-2 py-1.5 text-red-600 hover:bg-red-50 rounded cursor-pointer">
                                 Delete Course
                               </button>
                             </AlertDialogTrigger>

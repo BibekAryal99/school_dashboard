@@ -1,5 +1,5 @@
 export interface Course {
-  id: number;
+  id: string | number;
   name: string;
   instructor: string;
   students: number;

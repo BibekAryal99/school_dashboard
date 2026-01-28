@@ -4,31 +4,51 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/toast";
 import type { Assignment } from "@/app/types/assignment";
+
+const API_BASE_URL = "http://localhost:3001/assignments";
 
 export default function AssignmentViewPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const [assignment, setAssignment] = useState<Assignment | null>(null);
-
-  const STORAGE_KEY = "assignment_data";
-
-  const getAssignmentById = (id: number) => {
-    if (typeof window === "undefined") return undefined;
-    const assignments: Assignment[] = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "[]",
-    );
-    return assignments.find((a) => a.id === id);
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!params.id) return;
-    const found = getAssignmentById(Number(params.id));
-    if (found) setAssignment(found);
-  }, [params.id]);
+    const fetchAssignment = async () => {
+      try {
+        if (!params.id) return;
+        const response = await fetch(`${API_BASE_URL}/${params.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAssignment(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load assignment",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching assignment:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load assignment",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignment();
+  }, [params.id, toast]);
+
+  if (loading) {
+    return <div className="p-4 text-center">Loading assignment...</div>;
+  }
 
   if (!assignment) {
-    return <div className="p-4 text-center">Loading assignment...</div>;
+    return <div className="p-4 text-center">Assignment not found</div>;
   }
 
   const formatDate = (dateStr: string) => {

@@ -6,20 +6,43 @@ import type { CourseFormData } from "@/app/validation/schemas/course";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Course } from "@/app/types/course";
+import { useToast } from "@/components/ui/toast";
+
+const API_BASE_URL = "http://localhost:3001/courses";
 
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const [course, setCourse] = useState<CourseFormData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("course_data");
-    const courses = stored ? JSON.parse(stored) : [];
-    const found = courses.find((c: any) => c.id === Number(params.id));
-    setCourse(found || null);
-    setLoading(false);
-  }, [params.id]);
+    const fetchCourse = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/${params.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCourse(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load course",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching course:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load course",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourse();
+  }, [params.id, toast]);
 
   if (loading) {
     return (
@@ -68,9 +91,8 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6">
-      <div className="max-w-3xl mx-auto">       
+      <div className="max-w-3xl mx-auto">
         <Card className="border">
-          
           <CardHeader className="border-b bg-gray-50">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
@@ -94,7 +116,6 @@ export default function CourseDetailPage() {
 
           <CardContent className="pt-6">
             <div className="space-y-6">
-             
               <div>
                 <label className="text-sm font-medium text-gray-700">
                   Instructor
@@ -118,7 +139,6 @@ export default function CourseDetailPage() {
                 </p>
               </div>
 
-        
               <div>
                 <label className="text-sm font-medium text-gray-700">
                   Course Status
@@ -140,7 +160,6 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            
             <div className="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => router.push(`/courses/${course.id}/edit`)}

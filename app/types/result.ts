@@ -1,10 +1,10 @@
 export interface Result {
-  id: number;
+  id: string | number;
   studentName: string;
-  subject:string;
-  score:number;
-  totalMarks:number;
+  subject: string;
+  score: number;
+  totalMarks: number;
   examName: string;
   grade: string;
-  date:string;
+  date: string;
 }

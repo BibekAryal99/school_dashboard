@@ -2,14 +2,8 @@
 
 import Image from "next/image";
 import NextLink from "next/link";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import useProduct from "@/app/hooks/use-product";
 
-import { Product } from "@/app/types/product";
-import { ProductFormData, productSchema } from "@/app/validation/schemas/product";
-
-import { ToastProvider, useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,149 +30,37 @@ import Navbar from "../navbar/page";
 import Rating from "@/components/ui/rating";
 
 export default function ProductsPage() {
-  const { toast, ToastContainer } = useToast();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
-
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      title: "",
-      price: 0,
-      category: "",
-      status: "Available",
-      image: "",
-      description: "",
-      rating: {
-        rate: 0,
-        count: 0,
-      },
-    },
-  });
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      const stored = sessionStorage.getItem("product_data_session");
-
-      if (stored) {
-        setProducts(JSON.parse(stored));
-        setMounted(true);
-        return;
-      }
-
-      try {
-        const res = await fetch("https://fakestoreapi.com/products");
-        const data:unknown = await res.json();
-
-        if(!Array.isArray(data)){
-          throw new Error("Invalid Api Response");
-        }
-
-        const formatted: Product[] = data.map((p) => ({
-          id: p.id,
-          title: p.title,
-          price: p.price,
-          category: p.category,
-          status: "Available",
-          image: p.image || "",
-          description: p.description,
-        }));
-
-        setProducts(formatted);
-        sessionStorage.setItem(
-          "product_data_session",
-          JSON.stringify(formatted),
-        );
-      } catch {
-        toast({ title: "Error", description: "Failed to fetch products" });
-      }
-
-      setMounted(true);
-    };
-
-    loadProducts();
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    sessionStorage.setItem("product_data_session", JSON.stringify(products));
-  }, [products, mounted]);
-
-  if (!mounted) return null;
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    if (editing) {
-      try {
-        await fetch(`https://fakestoreapi.com/products/${editing.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        const updated = { ...editing, ...data };
-        setProducts((prev) =>
-          prev.map((p) => (p.id === editing.id ? updated : p)),
-        );
-        toast({ title: "Product updated" });
-      } catch {
-        toast({ title: "Error", description: "Update failed" });
-      }
-    } else {
-      try {
-        await fetch("https://fakestoreapi.com/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        const newProduct = { id: Date.now(), ...data };
-        setProducts((prev) => [...prev, newProduct]);
-        toast({ title: "Product added" });
-      } catch {
-        toast({ title: "Error", description: "Add failed" });
-      }
-    }
-
-    setEditing(null);
-    setOpen(false);
-    form.reset();
-  });
-
-  const handleDelete = async (id: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-
-    try {
-      await fetch(`https://fakestoreapi.com/products/${id}`, {
-        method: "DELETE",
-      });
-      toast({ title: "Product deleted" });
-    } catch {
-      toast({ title: "Error", description: "Delete failed" });
-    }
-  };
-
-  const handleEdit = (product: Product) => {
-    setEditing(product);
-    form.reset(product);
-    setOpen(true);
-  };
-
-  const handleAdd = () => {
-    setEditing(null);
-    form.reset();
-    setOpen(true);
-  };
+  const {
+    records: products,
+    open,
+    setOpen,
+    editing,
+    setEditing,
+    form,
+    handleSubmit,
+    handleEdit,
+    handleDelete,
+  } = useProduct();
 
   return (
-    <ToastProvider>
+    <>
       <Navbar />
       <div className="flex justify-between items-center p-6">
         <h2 className="text-3xl font-bold tracking-tight">Products</h2>
         <Button
-          onClick={handleAdd}
+          onClick={() => {
+            setEditing(null);
+            form.reset({
+              title: "",
+              price: 0,
+              category: "",
+              status: "Available",
+              image: "",
+              description: "",
+              rating: { rate: 0, count: 0 },
+            });
+            setOpen(true);
+          }}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
           Add Product
@@ -193,7 +75,10 @@ export default function ProductsPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div>
               <Label>Title</Label>
               <Input {...form.register("title")} />
@@ -406,7 +291,6 @@ export default function ProductsPage() {
           </Card>
         ))}
       </div>
-      <ToastContainer />
-    </ToastProvider>
+    </>
   );
 }
