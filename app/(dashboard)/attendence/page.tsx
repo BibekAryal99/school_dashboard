@@ -186,7 +186,7 @@ export default function AttendancePage() {
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-600 hover:bg-red-700"
-                              onClick={() => handleDelete(record.id)}
+                              onClick={() => handleDelete(Number(record.id))}
                             >
                               Delete
                             </AlertDialogAction>

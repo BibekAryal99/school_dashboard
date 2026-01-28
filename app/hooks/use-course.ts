@@ -24,6 +24,7 @@ const useCourse = () => {
   const [records, setRecords] = useState<Course[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Course | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const form = useForm<CourseCreateData>({
     resolver: zodResolver(courseCreateSchema),
@@ -32,6 +33,7 @@ const useCourse = () => {
 
   const { reset } = form;
 
+ 
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -43,10 +45,12 @@ const useCourse = () => {
         console.error("Error loading courses:", error);
       }
     };
+
     loadCourses();
   }, []);
 
-  const handleSubmit = async (data: CourseCreateData) => {
+  
+  const onSubmit = async (data: CourseCreateData) => {
     try {
       if (editing) {
         const response = await fetch(
@@ -55,29 +59,37 @@ const useCourse = () => {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
-          },
+          }
         );
+
         if (!response.ok) throw new Error("Failed to update");
         const updated = await response.json();
+
         setRecords((prev) =>
-          prev.map((r) => (r.id === editing.id ? updated : r)),
+          prev.map((r) => (r.id === editing.id ? updated : r))
         );
+
+        setSuccessMessage("Course updated successfully!");
       } else {
         const response = await fetch("http://localhost:3001/courses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
+
         if (!response.ok) throw new Error("Failed to create");
         const created = await response.json();
+
         setRecords((prev) => [...prev, created]);
+        setSuccessMessage("Course added successfully!");
       }
+
+      setOpen(false);
+      setEditing(null);
+      reset();
     } catch (error) {
       console.error("Error submitting course:", error);
     }
-    setOpen(false);
-    setEditing(null);
-    reset();
   };
 
   const handleEdit = (record: Course) => {
@@ -92,13 +104,18 @@ const useCourse = () => {
     setOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, name?: string) => {
     try {
       const response = await fetch(`http://localhost:3001/courses/${id}`, {
         method: "DELETE",
       });
+
       if (!response.ok) throw new Error("Failed to delete");
+
       setRecords((prev) => prev.filter((r) => r.id !== id));
+      setSuccessMessage(
+        name ? `Course "${name}" deleted successfully!` : "Course deleted"
+      );
     } catch (error) {
       console.error("Error deleting course:", error);
     }
@@ -113,9 +130,10 @@ const useCourse = () => {
     editing,
     setEditing,
     form,
-    handleSubmit,
+    onSubmit,         
     handleEdit,
     handleDelete,
+    successMessage,    
   };
 };
 
