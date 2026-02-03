@@ -1,13 +1,6 @@
 {
   "students": [
     {
-      "id": "1",
-      "name": "Bibek Aryal",
-      "email": "bibek@gmail.com",
-      "grade": "A",
-      "joinDate": "2026-01-25"
-    },
-    {
       "id": "2",
       "name": "John Doe",
       "email": "john@gmail.com",
@@ -413,11 +406,14 @@
   ],
   "fees": [
     {
-      "id": "1",
-      "studentId": 1,
+      "studentName": "Bibek Aryal",
+      "invoiceNumber": "2086228901",
       "amount": 5000,
-      "status": "Paid",
-      "dueDate": "2026-02-28"
+      "dueDate": "2026-02-28",
+      "paymentStatus": "Paid",
+      "paymentDate": "2026-02-19",
+      "description": "100% POLYURETHANE(shell) 100% POLYESTER(lining) 75% POLYESTER 25% COTTON (SWEATER), Faux leather material for style and comfort / 2 pockets of front, 2-For-One Hooded denim style faux leather jacket, Button detail on waist / Detail stitching at sides, HAND WASH ONLY / DO NOT BLEACH / LINE DRY / DO NOT IRON",
+      "id": "1"
     },
     {
       "id": "2",
@@ -425,6 +421,16 @@
       "amount": 5000,
       "status": "Pending",
       "dueDate": "2026-02-15"
+    },
+    {
+      "id": "e67d",
+      "studentName": "Bibek Aryal",
+      "invoiceNumber": "2086228901",
+      "amount": 2000,
+      "dueDate": "2026-02-28",
+      "paymentStatus": "Pending",
+      "paymentDate": "2026-02-19",
+      "description": "100% POLYURETHANE(shell) 100% POLYESTER(lining) 75% POLYESTER 25% COTTON (SWEATER), Faux leather material for style and comfort / 2 pockets of front, 2-For-One Hooded denim style faux leather jacket, Button detail on waist / Detail stitching at sides, HAND WASH ONLY / DO NOT BLEACH / LINE DRY / DO NOT IRON"
     }
   ],
   "messages": [
