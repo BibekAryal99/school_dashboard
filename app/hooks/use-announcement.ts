@@ -40,7 +40,7 @@ const useAnnouncement = () => {
   useEffect(() => {
     const loadAnnouncements = async () => {
       try {
-        const response = await fetch("http://localhost:3001/announcements");
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/announcements");
         if (!response.ok) throw new Error("Failed to fetch announcements");
         const data = await response.json();
         setRecords(data);
@@ -55,7 +55,7 @@ const useAnnouncement = () => {
     try {
       if (editing) {
         const response = await fetch(
-          `http://localhost:3001/announcements/${editing.id}`,
+          `https://schooldashboard-production-04e3.up.railway.app/announcements/${editing.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ const useAnnouncement = () => {
           prev.map((r) => (r.id === editing.id ? updated : r)),
         );
       } else {
-        const response = await fetch("http://localhost:3001/announcements", {
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/announcements", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -100,7 +100,7 @@ const useAnnouncement = () => {
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/announcements/${id}`,
+        `https://schooldashboard-production-04e3.up.railway.app/announcements/${id}`,
         {
           method: "DELETE",
         },
