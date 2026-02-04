@@ -37,7 +37,7 @@ const useCourse = () => {
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const response = await fetch("http://localhost:3001/courses");
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/courses");
         if (!response.ok) throw new Error("Failed to fetch courses");
         const data = await response.json();
         setRecords(data);
@@ -54,7 +54,7 @@ const useCourse = () => {
     try {
       if (editing) {
         const response = await fetch(
-          `http://localhost:3001/courses/${editing.id}`,
+          `https://schooldashboard-production-04e3.up.railway.app/courses/${editing.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ const useCourse = () => {
 
         setSuccessMessage("Course updated successfully!");
       } else {
-        const response = await fetch("http://localhost:3001/courses", {
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/courses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -106,7 +106,7 @@ const useCourse = () => {
 
   const handleDelete = async (id: number, name?: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/courses/${id}`, {
+      const response = await fetch(`https://schooldashboard-production-04e3.up.railway.app/courses/${id}`, {
         method: "DELETE",
       });
 
