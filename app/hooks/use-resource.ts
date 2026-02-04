@@ -34,7 +34,7 @@ const useResource = () => {
   useEffect(() => {
     const loadResources = async () => {
       try {
-        const response = await fetch("http://localhost:3001/resources");
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/resources");
         if (!response.ok) throw new Error("Failed to fetch resources");
         const data = await response.json();
         setRecords(data);
@@ -49,7 +49,7 @@ const useResource = () => {
     try {
       if (editing) {
         const response = await fetch(
-          `http://localhost:3001/resources/${editing.id}`,
+          `https://schooldashboard-production-04e3.up.railway.app/resources/${editing.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -62,7 +62,7 @@ const useResource = () => {
           prev.map((r) => (r.id === editing.id ? updated : r)),
         );
       } else {
-        const response = await fetch("http://localhost:3001/resources", {
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/resources", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -94,7 +94,7 @@ const useResource = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:3001/resources/${id}`, {
+      const response = await fetch(`https://schooldashboard-production-04e3.up.railway.app/resources/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete");
