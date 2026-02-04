@@ -37,7 +37,7 @@ const useProduct = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch("http://localhost:3001/products");
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/products");
         if (!response.ok) throw new Error("Failed to fetch products");
         const data = await response.json();
         setRecords(data);
@@ -52,7 +52,7 @@ const useProduct = () => {
     try {
       if (editing) {
         const response = await fetch(
-          `http://localhost:3001/products/${editing.id}`,
+          `https://schooldashboard-production-04e3.up.railway.app/products/${editing.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ const useProduct = () => {
           prev.map((r) => (r.id === editing.id ? updated : r)),
         );
       } else {
-        const response = await fetch("http://localhost:3001/products", {
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -98,7 +98,7 @@ const useProduct = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:3001/products/${id}`, {
+      const response = await fetch(`https://schooldashboard-production-04e3.up.railway.app/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete");
