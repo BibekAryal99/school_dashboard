@@ -6,36 +6,43 @@ import { Button } from "@/components/ui/button";
 import type { Fee } from "@/app/types/fee";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "fee_data";
+const API_URL = "https://schooldashboard-production-04e3.up.railway.app/fees";
 
-const getFromStorage = (): Fee[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+const fetchFeeById = async (id: number): Promise<Fee | null> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 };
 
-const getById = (id: number): Fee | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
+const updateFee = async (
   id: number,
-  data: Partial<Omit<Fee, "id">>,
-): Fee | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
+  data: Partial<Omit<Fee, "id">>
+): Promise<Fee | null> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 };
 
-const deleteRecord = (id: number): boolean => {
-  const records = getFromStorage();
-  const filtered = records.filter((a) => a.id !== id);
-  if (filtered.length === records.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
+const deleteFee = async (id: number): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    return res.ok;
+  } catch {
+    return false;
+  }
 };
 
 export default function FeeDetailPage() {
@@ -49,35 +56,41 @@ export default function FeeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFee = () => { 
-    const id = parseInt(params.id as string);
-    const found = getById(id);
-    if (found) {
-      setRecord(found);
-      setFormData(found);
-    }
-    setLoading(false);
-};
-   fetchFee();
+    const loadFee = async () => {
+      const id = parseInt(params.id as string);
+      const data = await fetchFeeById(id);
+      if (data) {
+        setRecord(data);
+        setFormData(data);
+      }
+      setLoading(false);
+    };
+
+    loadFee();
   }, [params.id]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!record) return;
-    const updated = updateRecord(record.id, formData);
+
+    const updated = await updateFee(record.id, formData);
+
     if (updated) {
       setRecord(updated);
       setIsEditing(false);
-      toast({ title: "Fee saved", description: "Fee updated successfully" });
+      toast({ title: "Saved", description: "Fee updated successfully" });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this fee?")) {
-      if (deleteRecord(record.id)) {
+      const success = await deleteFee(record.id);
+
+      if (success) {
         toast({
           title: "Fee deleted",
-          description: "Fee deleted successfully",
+          description: "Fee removed successfully",
         });
+
         setTimeout(() => router.push("/fees"), 800);
       }
     }
@@ -100,6 +113,7 @@ export default function FeeDetailPage() {
           {isEditing ? (
             <div className="p-8 space-y-6">
               <h2 className="text-2xl font-bold">Edit Fee</h2>
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.studentName || ""}
@@ -108,6 +122,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Student Name"
               />
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.invoiceNumber || ""}
@@ -116,6 +131,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Invoice Number"
               />
+
               <input
                 type="number"
                 className="w-full border p-2 rounded"
@@ -128,6 +144,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Amount"
               />
+
               <input
                 type="date"
                 className="w-full border p-2 rounded"
@@ -136,6 +153,7 @@ export default function FeeDetailPage() {
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
               />
+
               <select
                 className="w-full border p-2 rounded"
                 value={formData.paymentStatus || "Pending"}
@@ -150,6 +168,7 @@ export default function FeeDetailPage() {
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
               </select>
+
               <input
                 type="date"
                 className="w-full border p-2 rounded"
@@ -158,6 +177,7 @@ export default function FeeDetailPage() {
                   setFormData({ ...formData, paymentDate: e.target.value })
                 }
               />
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.description || ""}
@@ -166,6 +186,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Description"
               />
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -187,6 +208,7 @@ export default function FeeDetailPage() {
                   Invoice: {record.invoiceNumber}
                 </p>
               </div>
+
               <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-6 border">
                 <div>
                   <h3 className="font-semibold mb-2">Amount</h3>
@@ -202,18 +224,18 @@ export default function FeeDetailPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Payment Date</h3>
-                  <p className="text-gray-700">{record.paymentDate || "N/A"}</p>
+                  <p className="text-gray-700">
+                    {record.paymentDate || "N/A"}
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <h3 className="font-semibold mb-2">Description</h3>
                   <p className="text-gray-700">{record.description}</p>
                 </div>
               </div>
+
               <div className="flex justify-end gap-3 pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/fees/${record.id}/edit`)}
-                >
+                <Button variant="outline" onClick={() => setIsEditing(true)}>
                   Edit
                 </Button>
                 <Button variant="destructive" onClick={handleDelete}>
@@ -224,6 +246,7 @@ export default function FeeDetailPage() {
           )}
         </div>
       </div>
+
       <ToastContainer />
     </ToastProvider>
   );
