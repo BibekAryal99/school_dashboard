@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import { Student } from "@/app/types/student";
 
-const API_BASE_URL = "http://localhost:3001/students";
+const API_BASE_URL = "https://blissful-cat-production.up.railway.app/students";
 
 export default function StudentDetailPage() {
   const { toast, ToastContainer } = useToast();
