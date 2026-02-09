@@ -2075,6 +2075,8 @@ json-schema-traverse@^0.4.1:
 
 json-server@^1.0.0-beta.5:
   version "1.0.0-beta.5"
+  resolved "https://registry.npmjs.org/json-server/-/json-server-1.0.0-beta.5.tgz"
+  integrity sha512-CvoacHWudRGAlCSnX359W4zTcRSM3FQte2s5rXvWb1R+msDsJNx8AOErFXXmzY6mg3vE5YKJUyFbyUd3YGkiRQ==
   dependencies:
     "@tinyhttp/app" "^3.0.1"
     "@tinyhttp/cors" "^2.0.1"
@@ -2678,6 +2680,11 @@ semver@^7.7.3:
   version "7.7.3"
   resolved "https://registry.npmjs.org/semver/-/semver-7.7.3.tgz"
   integrity sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==
+
+serverless-http@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/serverless-http/-/serverless-http-4.0.0.tgz"
+  integrity sha512-KKl9h1+VApX9y2vHsVMogf906UXBwO3FDYiWPzqS0mCjEEx4Sx91JrssbWA7RN43HBuxrtoh8MkocZPvjyGnLg==
 
 set-function-length@^1.2.2:
   version "1.2.2"
