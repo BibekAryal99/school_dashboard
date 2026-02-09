@@ -6,48 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Fee } from "@/app/types/fee";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-<<<<<<< HEAD
 const API_BASE_URL = "http://localhost:3001/fees";
-=======
-const API_URL = "https://schooldashboard-production-04e3.up.railway.app/fees";
-
-const fetchFeeById = async (id: number): Promise<Fee | null> => {
-  try {
-    const res = await fetch(`${API_URL}/${id}`);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-};
-
-const updateFee = async (
-  id: number,
-  data: Partial<Omit<Fee, "id">>
-): Promise<Fee | null> => {
-  try {
-    const res = await fetch(`${API_URL}/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-};
-
-const deleteFee = async (id: number): Promise<boolean> => {
-  try {
-    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    return res.ok;
-  } catch {
-    return false;
-  }
-};
->>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
 
 export default function FeeDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -60,7 +19,6 @@ export default function FeeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-<<<<<<< HEAD
     const fetchFee = async () => {
       try {
         const id = params.id as string;
@@ -88,25 +46,10 @@ export default function FeeDetailPage() {
     };
     fetchFee();
   }, [params.id, toast, router]);
-=======
-    const loadFee = async () => {
-      const id = parseInt(params.id as string);
-      const data = await fetchFeeById(id);
-      if (data) {
-        setRecord(data);
-        setFormData(data);
-      }
-      setLoading(false);
-    };
-
-    loadFee();
-  }, [params.id]);
->>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
 
   const handleSave = async () => {
     if (!record) return;
 
-<<<<<<< HEAD
     try {
       const response = await fetch(`${API_BASE_URL}/${record.id}`, {
         method: "PUT",
@@ -136,20 +79,11 @@ export default function FeeDetailPage() {
         title: "Error",
         description: "Failed to save fee",
       });
-=======
-    const updated = await updateFee(record.id, formData);
-
-    if (updated) {
-      setRecord(updated);
-      setIsEditing(false);
-      toast({ title: "Saved", description: "Fee updated successfully" });
->>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
     }
   };
 
   const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this fee?")) {
-<<<<<<< HEAD
       try {
         const response = await fetch(`${API_BASE_URL}/${record.id}`, {
           method: "DELETE",
@@ -173,17 +107,6 @@ export default function FeeDetailPage() {
           title: "Error",
           description: "Failed to delete fee",
         });
-=======
-      const success = await deleteFee(record.id);
-
-      if (success) {
-        toast({
-          title: "Fee deleted",
-          description: "Fee removed successfully",
-        });
-
-        setTimeout(() => router.push("/fees"), 800);
->>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
       }
     }
   };

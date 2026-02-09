@@ -8,6 +8,8 @@ const middlewares = jsonServer.defaults();
 
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
+
+// All routes under /api
 server.use("/api", router);
 
 export default serverless(server);
