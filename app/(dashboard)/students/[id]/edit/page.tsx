@@ -75,7 +75,7 @@ export default function StudentEditPage() {
           description: "Student Record have been saved successfully",
         });
         setTimeout(() => {
-          router.push(`/students/${student.id}`);
+          router.push(`/students`);
         }, 3000);
       } else {
         toast({
