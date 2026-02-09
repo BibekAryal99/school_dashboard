@@ -8,29 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { Message } from "@/app/types/message";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "message_data";
-
-const getFromStorage = (): Message[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): Message | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<Message, "id">>,
-): Message | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
+const API_BASE_URL = "http://localhost:3001/messages";
 
 export default function MessageEditPage() {
   const { toast, ToastContainer } = useToast();
@@ -42,26 +20,64 @@ export default function MessageEditPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMessage = () => {
-    const id = parseInt(params.id as string);
-    const found = getById(id);
-    if (found) setRecord(found);
-    setFormData(found || {});
-    setLoading(false);
+    const fetchMessage = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Message not found",
+          });
+          router.push("/messages");
+        }
+      } catch (error) {
+        console.error("Error fetching message:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load message",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     fetchMessage();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
-    if (record) {
-      const updated = updateRecord(record.id, formData);
-      if (updated) {
+  const handleSave = async () => {
+    if (!record) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
         toast({
           title: "Message saved",
           description: "Message has been updated successfully",
         });
         setTimeout(() => router.push(`/messages/${record.id}`), 2000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save message",
+        });
       }
+    } catch (error) {
+      console.error("Error saving message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save message",
+      });
     }
   };
 

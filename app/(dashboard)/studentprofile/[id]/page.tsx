@@ -6,37 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { StudentProfile } from "@/app/types/studentprofile";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "studentprofile_data";
-
-const getFromStorage = (): StudentProfile[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): StudentProfile | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<StudentProfile, "id">>,
-): StudentProfile | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
-
-const deleteRecord = (id: number): boolean => {
-  const records = getFromStorage();
-  const filtered = records.filter((a) => a.id !== id);
-  if (filtered.length === records.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-};
+const API_BASE_URL = "http://localhost:3001/studentprofile";
 
 export default function StudentProfileDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -50,38 +20,93 @@ export default function StudentProfileDetailPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-    const id = parseInt(params.id as string);
-    const found = await getById(id);
-    if (found) {
-      setRecord(found);
-      setFormData(found);
-    }
-    setLoading(false);
-};
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Profile not found",
+          });
+          router.push("/studentprofile");
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProfile();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!record) return;
-    const updated = updateRecord(record.id, formData);
-    if (updated) {
-      setRecord(updated);
-      setIsEditing(false);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setRecord(updated);
+        setIsEditing(false);
+        toast({
+          title: "Profile saved",
+          description: "Profile updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save profile",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
       toast({
-        title: "Profile saved",
-        description: "Profile updated successfully",
+        title: "Error",
+        description: "Failed to save profile",
       });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this profile?")) {
-      if (deleteRecord(record.id)) {
-        toast({
-          title: "Profile deleted",
-          description: "Profile deleted successfully",
+      try {
+        const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+          method: "DELETE",
         });
-        setTimeout(() => router.push("/studentprofile"), 800);
+
+        if (response.ok) {
+          toast({
+            title: "Profile deleted",
+            description: "Profile deleted successfully",
+          });
+          setTimeout(() => router.push("/studentprofile"), 800);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete profile",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete profile",
+        });
       }
     }
   };

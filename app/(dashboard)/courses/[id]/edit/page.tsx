@@ -12,18 +12,19 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-const STORAGE_KEY = "course_data";
+const API_BASE_URL = "http://localhost:3001/courses";
 
 export default function CourseEditPage() {
   const { toast, ToastContainer } = useToast();
   const router = useRouter();
-  const pathname = usePathname();
-  const id = Number(pathname.split("/")[2]);
+  const params = useParams();
+  const id = params.id as string;
   const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<Course>({
     defaultValues: {
@@ -36,36 +37,67 @@ export default function CourseEditPage() {
   });
 
   useEffect(() => {
-    setTimeout(() => {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const courses: Course[] = JSON.parse(stored);
-        const c = courses.find((c) => c.id === id);
-        if (c) {
-          setCourse(c);
-          form.reset(c);
+    const fetchCourse = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCourse(data);
+          form.reset(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Course not found",
+          });
+          router.push("/courses");
         }
+      } catch (error) {
+        console.error("Error fetching course:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load course",
+        });
+      } finally {
+        setLoading(false);
       }
-    }, 2000);
-  }, [id, form]);
+    };
+    fetchCourse();
+  }, [id, form, toast, router]);
 
+  if (loading) return <div className="p-6">Loading...</div>;
   if (!course) return <p className="p-6">Course not found</p>;
 
-  const handleSubmit = (data: Course) => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const courses: Course[] = JSON.parse(stored);
-      const updated = courses.map((c) => (c.id === id ? { ...c, ...data } : c));
-      toast({
-        title: "Course Updated",
-        description: "Course details updated successfully",
+  const handleSubmit = async (data: Course) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      if (response.ok) {
+        toast({
+          title: "Course Updated",
+          description: "Course details updated successfully",
+        });
+        setTimeout(() => {
+          router.push(`/courses/${id}`);
+        }, 3000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update course",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating course:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update course",
+      });
     }
-    setTimeout(() => {
-      router.push("/courses");
-    }, 3000);
   };
 
   return (

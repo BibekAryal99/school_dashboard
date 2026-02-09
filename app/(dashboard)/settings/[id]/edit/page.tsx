@@ -8,29 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { Setting } from "@/app/types/setting";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "setting_data";
-
-const getFromStorage = (): Setting[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): Setting | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<Setting, "id">>,
-): Setting | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
+const API_BASE_URL = "http://localhost:3001/settings";
 
 export default function SettingEditPage() {
   const { toast, ToastContainer } = useToast();
@@ -43,25 +21,63 @@ export default function SettingEditPage() {
 
   useEffect(() => {
     const fetchSetting = async () => {
-    const id = parseInt(params.id as string);
-    const found = getById(id);
-    if (found) setRecord(found);
-    setFormData(found || {});
-    setLoading(false);
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Setting not found",
+          });
+          router.push("/settings");
+        }
+      } catch (error) {
+        console.error("Error fetching setting:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load setting",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     fetchSetting();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
-    if (record) {
-      const updated = updateRecord(record.id, formData);
-      if (updated) {
+  const handleSave = async () => {
+    if (!record) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
         toast({
           title: "Setting saved",
           description: "Setting has been updated successfully",
         });
         setTimeout(() => router.push(`/settings/${record.id}`), 2000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save setting",
+        });
       }
+    } catch (error) {
+      console.error("Error saving setting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save setting",
+      });
     }
   };
 

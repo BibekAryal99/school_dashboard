@@ -6,37 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Setting } from "@/app/types/setting";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "setting_data";
-
-const getFromStorage = (): Setting[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): Setting | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<Setting, "id">>,
-): Setting | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
-
-const deleteRecord = (id: number): boolean => {
-  const records = getFromStorage();
-  const filtered = records.filter((a) => a.id !== id);
-  if (filtered.length === records.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-};
+const API_BASE_URL = "http://localhost:3001/settings";
 
 export default function SettingDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -50,38 +20,93 @@ export default function SettingDetailPage() {
 
   useEffect(() => {
     const fetchSetting = async () => {
-    const id = parseInt(params.id as string);
-    const found = await  getById(id);
-    if (found) {
-      setRecord(found);
-      setFormData(found);
-    }
-    setLoading(false);
-};
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Setting not found",
+          });
+          router.push("/settings");
+        }
+      } catch (error) {
+        console.error("Error fetching setting:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load setting",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchSetting();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!record) return;
-    const updated = updateRecord(record.id, formData);
-    if (updated) {
-      setRecord(updated);
-      setIsEditing(false);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setRecord(updated);
+        setIsEditing(false);
+        toast({
+          title: "Setting saved",
+          description: "Setting updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save setting",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving setting:", error);
       toast({
-        title: "Setting saved",
-        description: "Setting updated successfully",
+        title: "Error",
+        description: "Failed to save setting",
       });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this setting?")) {
-      if (deleteRecord(record.id)) {
-        toast({
-          title: "Setting deleted",
-          description: "Setting deleted successfully",
+      try {
+        const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+          method: "DELETE",
         });
-        setTimeout(() => router.push("/settings"), 800);
+
+        if (response.ok) {
+          toast({
+            title: "Setting deleted",
+            description: "Setting deleted successfully",
+          });
+          setTimeout(() => router.push("/settings"), 800);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete setting",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting setting:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete setting",
+        });
       }
     }
   };

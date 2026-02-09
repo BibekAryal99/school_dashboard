@@ -6,37 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Fee } from "@/app/types/fee";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "fee_data";
-
-const getFromStorage = (): Fee[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): Fee | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<Fee, "id">>,
-): Fee | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
-
-const deleteRecord = (id: number): boolean => {
-  const records = getFromStorage();
-  const filtered = records.filter((a) => a.id !== id);
-  if (filtered.length === records.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-};
+const API_BASE_URL = "http://localhost:3001/fees";
 
 export default function FeeDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -49,36 +19,94 @@ export default function FeeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFee = () => { 
-    const id = parseInt(params.id as string);
-    const found = getById(id);
-    if (found) {
-      setRecord(found);
-      setFormData(found);
-    }
-    setLoading(false);
-};
-   fetchFee();
-  }, [params.id]);
+    const fetchFee = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Fee not found",
+          });
+          router.push("/fees");
+        }
+      } catch (error) {
+        console.error("Error fetching fee:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load fee",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFee();
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!record) return;
-    const updated = updateRecord(record.id, formData);
-    if (updated) {
-      setRecord(updated);
-      setIsEditing(false);
-      toast({ title: "Fee saved", description: "Fee updated successfully" });
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setRecord(updated);
+        setIsEditing(false);
+        toast({
+          title: "Fee saved",
+          description: "Fee updated successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save fee",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving fee:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save fee",
+      });
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this fee?")) {
-      if (deleteRecord(record.id)) {
-        toast({
-          title: "Fee deleted",
-          description: "Fee deleted successfully",
+      try {
+        const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+          method: "DELETE",
         });
-        setTimeout(() => router.push("/fees"), 800);
+
+        if (response.ok) {
+          toast({
+            title: "Fee deleted",
+            description: "Fee deleted successfully",
+          });
+          setTimeout(() => router.push("/fees"), 800);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete fee",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting fee:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete fee",
+        });
       }
     }
   };

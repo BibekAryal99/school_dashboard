@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,15 @@ import type { Teacher } from "@/app/types/teacher";
 import { useToast } from "@/components/ui/toast";
 import { ToastProvider } from "@radix-ui/react-toast";
 
-const STORAGE_KEY = "teachers_data";
+const API_BASE_URL = "http://localhost:3001/teachers";
 
 export default function TeacherEditPage() {
   const { toast, ToastContainer } = useToast();
   const router = useRouter();
-  const pathname = usePathname();
-  const id = Number(pathname.split("/")[2]);
+  const params = useParams();
+  const id = params.id as string;
   const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<Teacher>({
     defaultValues: {
@@ -37,35 +38,67 @@ export default function TeacherEditPage() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const teachers: Teacher[] = JSON.parse(stored);
-      const t = teachers.find((t) => t.id === id);
-      if (t) {
-        setTeacher(t);
-        form.reset(t);
+    const fetchTeacher = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTeacher(data);
+          form.reset(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Teacher not found",
+          });
+          router.push("/teacher");
+        }
+      } catch (error) {
+        console.error("Error fetching teacher:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load teacher",
+        });
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [id, form]);
+    };
+    fetchTeacher();
+  }, [id, form, toast, router]);
 
+  if (loading) return <div className="p-6">Loading...</div>;
   if (!teacher) return <p className="p-6">Teacher not found.</p>;
 
-  const handleSubmit = (data: Teacher) => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const teachers: Teacher[] = JSON.parse(stored);
-      const updated = teachers.map((t) =>
-        t.id === id ? { ...t, ...data } : t,
-      );
-      toast({
-        title: "Teacher updated",
-        description: "Teacher details updated successfully",
+  const handleSubmit = async (data: Teacher) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      if (response.ok) {
+        toast({
+          title: "Teacher updated",
+          description: "Teacher details updated successfully",
+        });
+        setTimeout(() => {
+          router.push(`/teacher/${id}`);
+        }, 3000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update teacher",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating teacher:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update teacher",
+      });
     }
-    setTimeout(() => {
-      router.push("/teacher");
-    }, 3000);
   };
 
   return (

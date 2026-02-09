@@ -1,13 +1,6 @@
 {
   "students": [
     {
-      "id": "2",
-      "name": "John Doe",
-      "email": "john@gmail.com",
-      "grade": "B+",
-      "joinDate": "2026-01-20"
-    },
-    {
       "id": "3",
       "name": "Jane Smith",
       "email": "jane@gmail.com",
@@ -83,6 +76,15 @@
       "email": "Bikkhi@gmail.com",
       "grade": "A",
       "joinDate": "2026-01-29"
+    },
+    {
+      "0": {
+        "name": "",
+        "email": "",
+        "grade": "B",
+        "joinDate": "2023-2-12"
+      },
+      "id": "279f"
     }
   ],
   "courses": [
@@ -492,6 +494,46 @@
       "studentId": 1,
       "date": "2026-01-27",
       "status": "Present"
+    }
+  ],
+  "analytics": [
+    {
+      "id": "1",
+      "subject": "Mathematics",
+      "averageScore": 85,
+      "strengths": [
+        "Algebra",
+        "Geometry"
+      ],
+      "weakness": [
+        "Calculus"
+      ],
+      "overallPerformance": "Good",
+      "date": "2026-01-30"
+    }
+  ],
+  "studentProfiles": [
+    {
+      "id": 1,
+      "name": "Bibek Aryal",
+      "rollNumber": 7,
+      "className": "10th Grade",
+      "enrollmentDate": "2020-01-15",
+      "guardianName": "Mr. Aryal",
+      "email": "bebibek@gmail.com",
+      "phone": "123-456-7890"
+    }
+  ],
+  "settings": [
+    {
+      "id": 1,
+      "userId": "user_12345",
+      "notificationsEnabled": true,
+      "theme": "Light",
+      "language": "English",
+      "privacy": "Public",
+      "twoFactorAuth": false,
+      "lastModified": "2024-02-10T12:30:00Z"
     }
   ]
 }

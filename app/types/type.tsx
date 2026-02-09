@@ -1,6 +1,7 @@
 export type SummaryCardProps = {
   title: string;
   value: string | number;
+  change?: string;
   icon?: React.ReactNode;
 };
 

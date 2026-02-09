@@ -8,29 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { StudentProfile } from "@/app/types/studentprofile";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "studentprofile_data";
-
-const getFromStorage = (): StudentProfile[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): StudentProfile | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<StudentProfile, "id">>,
-): StudentProfile | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
+const API_BASE_URL = "http://localhost:3001/studentprofile";
 
 export default function StudentProfileEditPage() {
   const { toast, ToastContainer } = useToast();
@@ -43,25 +21,63 @@ export default function StudentProfileEditPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-    const id = parseInt(params.id as string);
-    const found = await getById(id);
-    if (found) setRecord(found);
-    setFormData(found || {});
-    setLoading(false);
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Profile not found",
+          });
+          router.push("/studentprofile");
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProfile();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
-    if (record) {
-      const updated = updateRecord(record.id, formData);
-      if (updated) {
+  const handleSave = async () => {
+    if (!record) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
         toast({
           title: "Profile saved",
           description: "Profile has been updated successfully",
         });
         setTimeout(() => router.push(`/studentprofile/${record.id}`), 2000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save profile",
+        });
       }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile",
+      });
     }
   };
 

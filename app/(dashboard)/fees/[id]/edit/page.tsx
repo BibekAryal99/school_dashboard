@@ -8,29 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { Fee } from "@/app/types/fee";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
-const STORAGE_KEY = "fee_data";
-
-const getFromStorage = (): Fee[] => {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const getById = (id: number): Fee | undefined => {
-  return getFromStorage().find((a) => a.id === id);
-};
-
-const updateRecord = (
-  id: number,
-  data: Partial<Omit<Fee, "id">>,
-): Fee | null => {
-  const records = getFromStorage();
-  const index = records.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  records[index] = { ...records[index], ...data };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records[index];
-};
+const API_BASE_URL = "http://localhost:3001/fees";
 
 export default function FeeEditPage() {
   const { toast, ToastContainer } = useToast();
@@ -42,26 +20,64 @@ export default function FeeEditPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFee = async () => { 
-    const id = parseInt(params.id as string);
-    const found = await getById(id);
-    if (found) setRecord(found);
-    setFormData(found || {});
-    setLoading(false);
+    const fetchFee = async () => {
+      try {
+        const id = params.id as string;
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+          setFormData(data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Fee not found",
+          });
+          router.push("/fees");
+        }
+      } catch (error) {
+        console.error("Error fetching fee:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load fee",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     fetchFee();
-  }, [params.id]);
+  }, [params.id, toast, router]);
 
-  const handleSave = () => {
-    if (record) {
-      const updated = updateRecord(record.id, formData);
-      if (updated) {
+  const handleSave = async () => {
+    if (!record) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${record.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
         toast({
           title: "Fee saved",
           description: "Fee has been updated successfully",
         });
         setTimeout(() => router.push(`/fees/${record.id}`), 2000);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save fee",
+        });
       }
+    } catch (error) {
+      console.error("Error saving fee:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save fee",
+      });
     }
   };
 
