@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-     "start": "json-server --watch db.json --port 3000"
-    "lint": "eslint ."
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "json-server": "json-server --watch db.json --port 3000",
+  "lint": "eslint ."
+},
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.2.1",
