@@ -36,7 +36,7 @@ export default function ProductViewPage() {
           }
         }
 
-        const res = await fetch(`https://fakestoreapi.com/products/${id}`);
+        const res = await fetch(`https://schooldashboard-production-04e3.up.railway.app/products/${id}`);
         if (!res.ok) throw new Error("Failed to fetch");
         
         const data = await res.json();

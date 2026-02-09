@@ -53,7 +53,7 @@ export default function EditProductPage() {
     
     setIsSubmitting(true);
     try {
-      const response = await fetch(`https://fakestoreapi.com/products/${product.id}`, {
+      const response = await fetch(`https://schooldashboard-production-04e3.up.railway.app/products/${product.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

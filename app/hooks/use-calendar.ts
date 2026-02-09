@@ -35,7 +35,7 @@ const useCalendar = () => {
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const response = await fetch("http://localhost:3001/calendar");
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/calendar");
         if (!response.ok) throw new Error("Failed to fetch events");
         const data = await response.json();
         setRecords(data);
@@ -50,7 +50,7 @@ const useCalendar = () => {
     try {
       if (editing) {
         const response = await fetch(
-          `http://localhost:3001/calendar/${editing.id}`,
+          `https://schooldashboard-production-04e3.up.railway.app/calendar/${editing.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -63,7 +63,7 @@ const useCalendar = () => {
           prev.map((r) => (r.id === editing.id ? updated : r)),
         );
       } else {
-        const response = await fetch("http://localhost:3001/calendar", {
+        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/calendar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -94,7 +94,7 @@ const useCalendar = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:3001/calendar/${id}`, {
+      const response = await fetch(`https://schooldashboard-production-04e3.up.railway.app/calendar/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete");

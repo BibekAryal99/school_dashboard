@@ -6,7 +6,48 @@ import { Button } from "@/components/ui/button";
 import type { Fee } from "@/app/types/fee";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
+<<<<<<< HEAD
 const API_BASE_URL = "http://localhost:3001/fees";
+=======
+const API_URL = "https://schooldashboard-production-04e3.up.railway.app/fees";
+
+const fetchFeeById = async (id: number): Promise<Fee | null> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+};
+
+const updateFee = async (
+  id: number,
+  data: Partial<Omit<Fee, "id">>
+): Promise<Fee | null> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+};
+
+const deleteFee = async (id: number): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+>>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
 
 export default function FeeDetailPage() {
   const { toast, ToastContainer } = useToast();
@@ -19,6 +60,7 @@ export default function FeeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+<<<<<<< HEAD
     const fetchFee = async () => {
       try {
         const id = params.id as string;
@@ -46,10 +88,25 @@ export default function FeeDetailPage() {
     };
     fetchFee();
   }, [params.id, toast, router]);
+=======
+    const loadFee = async () => {
+      const id = parseInt(params.id as string);
+      const data = await fetchFeeById(id);
+      if (data) {
+        setRecord(data);
+        setFormData(data);
+      }
+      setLoading(false);
+    };
+
+    loadFee();
+  }, [params.id]);
+>>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
 
   const handleSave = async () => {
     if (!record) return;
 
+<<<<<<< HEAD
     try {
       const response = await fetch(`${API_BASE_URL}/${record.id}`, {
         method: "PUT",
@@ -79,11 +136,20 @@ export default function FeeDetailPage() {
         title: "Error",
         description: "Failed to save fee",
       });
+=======
+    const updated = await updateFee(record.id, formData);
+
+    if (updated) {
+      setRecord(updated);
+      setIsEditing(false);
+      toast({ title: "Saved", description: "Fee updated successfully" });
+>>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
     }
   };
 
   const handleDelete = async () => {
     if (record && confirm("Are you sure you want to delete this fee?")) {
+<<<<<<< HEAD
       try {
         const response = await fetch(`${API_BASE_URL}/${record.id}`, {
           method: "DELETE",
@@ -107,6 +173,17 @@ export default function FeeDetailPage() {
           title: "Error",
           description: "Failed to delete fee",
         });
+=======
+      const success = await deleteFee(record.id);
+
+      if (success) {
+        toast({
+          title: "Fee deleted",
+          description: "Fee removed successfully",
+        });
+
+        setTimeout(() => router.push("/fees"), 800);
+>>>>>>> 2806e84062c209e6e9930784b7e214642bef9a08
       }
     }
   };
@@ -128,6 +205,7 @@ export default function FeeDetailPage() {
           {isEditing ? (
             <div className="p-8 space-y-6">
               <h2 className="text-2xl font-bold">Edit Fee</h2>
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.studentName || ""}
@@ -136,6 +214,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Student Name"
               />
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.invoiceNumber || ""}
@@ -144,6 +223,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Invoice Number"
               />
+
               <input
                 type="number"
                 className="w-full border p-2 rounded"
@@ -156,6 +236,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Amount"
               />
+
               <input
                 type="date"
                 className="w-full border p-2 rounded"
@@ -164,6 +245,7 @@ export default function FeeDetailPage() {
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
               />
+
               <select
                 className="w-full border p-2 rounded"
                 value={formData.paymentStatus || "Pending"}
@@ -178,6 +260,7 @@ export default function FeeDetailPage() {
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
               </select>
+
               <input
                 type="date"
                 className="w-full border p-2 rounded"
@@ -186,6 +269,7 @@ export default function FeeDetailPage() {
                   setFormData({ ...formData, paymentDate: e.target.value })
                 }
               />
+
               <input
                 className="w-full border p-2 rounded"
                 value={formData.description || ""}
@@ -194,6 +278,7 @@ export default function FeeDetailPage() {
                 }
                 placeholder="Description"
               />
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -215,6 +300,7 @@ export default function FeeDetailPage() {
                   Invoice: {record.invoiceNumber}
                 </p>
               </div>
+
               <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-6 border">
                 <div>
                   <h3 className="font-semibold mb-2">Amount</h3>
@@ -230,18 +316,18 @@ export default function FeeDetailPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Payment Date</h3>
-                  <p className="text-gray-700">{record.paymentDate || "N/A"}</p>
+                  <p className="text-gray-700">
+                    {record.paymentDate || "N/A"}
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <h3 className="font-semibold mb-2">Description</h3>
                   <p className="text-gray-700">{record.description}</p>
                 </div>
               </div>
+
               <div className="flex justify-end gap-3 pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/fees/${record.id}/edit`)}
-                >
+                <Button variant="outline" onClick={() => setIsEditing(true)}>
                   Edit
                 </Button>
                 <Button variant="destructive" onClick={handleDelete}>
@@ -252,6 +338,7 @@ export default function FeeDetailPage() {
           )}
         </div>
       </div>
+
       <ToastContainer />
     </ToastProvider>
   );
