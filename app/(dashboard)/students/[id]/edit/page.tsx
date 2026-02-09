@@ -27,7 +27,7 @@ export default function StudentEditPage() {
     const fetchStudent = async () => {
       try {
         const id = params.id as string;
-        const response = await fetch(`${API_BASE_URL}/${id}`);
+        const response = await fetch(`${API_BASE_URL}`);
         if (response.ok) {
           const data = await response.json();
           setStudent(data);
