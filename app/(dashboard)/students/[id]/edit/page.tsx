@@ -27,7 +27,7 @@ export default function StudentEditPage() {
     const fetchStudent = async () => {
       try {
         const id = params.id as string;
-        const response = await fetch(`${API_BASE_URL}`);
+        const response = await fetch(`${API_BASE_URL}/${id}`);
         if (response.ok) {
           const data = await response.json();
           setStudent(data);
@@ -61,7 +61,7 @@ export default function StudentEditPage() {
     if (!student) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${student.id}/edit`, {
+      const response = await fetch(`${API_BASE_URL}/${student.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export default function StudentEditPage() {
           description: "Student Record have been saved successfully",
         });
         setTimeout(() => {
-          router.push(`/students`);
+          router.push(`/students/${student.id}`);
         }, 3000);
       } else {
         toast({
@@ -90,6 +90,10 @@ export default function StudentEditPage() {
         description: "Failed to save student",
       });
     }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCancel = () => {
@@ -134,7 +138,7 @@ export default function StudentEditPage() {
                 id="studentName"
                 value={formData.name || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  handleInputChange('name', e.target.value)
                 }
                 placeholder="Enter student name"
                 className="h-12 text-lg"
@@ -150,7 +154,7 @@ export default function StudentEditPage() {
                   id="email"
                   value={formData.email || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    handleInputChange('email', e.target.value)
                   }
                   placeholder="Enter Email"
                   className="h-12 text-lg"
@@ -167,7 +171,7 @@ export default function StudentEditPage() {
                     type="date"
                     value={formData.joinDate || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, joinDate: e.target.value })
+                      handleInputChange('joinDate', e.target.value)
                     }
                     className="h-12 text-lg"
                   />
@@ -181,7 +185,7 @@ export default function StudentEditPage() {
                     id="status"
                     value={formData.grade || "A"}
                     onChange={(e) =>
-                      setFormData({ ...formData, grade: e.target.value as any })
+                      handleInputChange('grade', e.target.value)
                     }
                     className="w-full h-12 rounded-md border border-input bg-background px-3 py-2 text-lg"
                   >
