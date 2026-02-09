@@ -6,8 +6,7 @@
   "scripts": {
   "dev": "next dev",
   "build": "next build",
-  "start": "next start",
-  "json-server": "json-server --watch db.json --port 8080",
+  "start": "json-server --watch db.json --port 8080",
   "lint": "eslint ."
 },
   "dependencies": {
