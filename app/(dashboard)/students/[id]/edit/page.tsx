@@ -61,7 +61,7 @@ export default function StudentEditPage() {
     if (!student) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${student.id}`, {
+      const response = await fetch(`${API_BASE_URL}/${student.id}/edit`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
