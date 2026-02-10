@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,9 @@ export default function StudentEditPage() {
     grade: "A",
   });
 
+  // prevents form reset after user edits
+  const initializedRef = useRef(false);
+
   // Normalize date to YYYY-MM-DD
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -34,6 +37,8 @@ export default function StudentEditPage() {
   };
 
   useEffect(() => {
+    if (!params?.id) return;
+
     const fetchStudent = async () => {
       try {
         const id = params.id as string;
@@ -45,17 +50,20 @@ export default function StudentEditPage() {
           return;
         }
 
-        const data = await response.json();
+        const data: Student = await response.json();
         setStudent(data);
 
-        // Set form data safely
-        setFormData({
-          name: data.name ?? "",
-          email: data.email ?? "",
-          joinDate: formatDate(data.joinDate),
-          grade: data.grade ?? "A",
-        });
-      } catch (error) {
+        // hydrate form ONLY ONCE
+        if (!initializedRef.current) {
+          setFormData({
+            name: data.name ?? "",
+            email: data.email ?? "",
+            joinDate: formatDate(data.joinDate),
+            grade: data.grade ?? "A",
+          });
+          initializedRef.current = true;
+        }
+      } catch {
         toast({
           title: "Error",
           description: "Failed to load student",
@@ -66,7 +74,7 @@ export default function StudentEditPage() {
     };
 
     fetchStudent();
-  }, [params.id]);
+  }, [params?.id, router, toast]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,22 +92,23 @@ export default function StudentEditPage() {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        toast({
-          title: "Saved",
-          description: "Student updated successfully",
-        });
-
-        setTimeout(() => {
-          router.push(`/students/${student.id}`);
-        }, 1500);
-      } else {
+      if (!response.ok) {
         toast({
           title: "Error",
           description: "Failed to save student",
         });
+        return;
       }
-    } catch (error) {
+
+      toast({
+        title: "Saved",
+        description: "Student updated successfully",
+      });
+
+      setTimeout(() => {
+        router.push(`/students/${student.id}`);
+      }, 1500);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save student",
@@ -155,7 +164,9 @@ export default function StudentEditPage() {
               <Input
                 type="date"
                 value={formData.joinDate}
-                onChange={(e) => handleInputChange("joinDate", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("joinDate", e.target.value)
+                }
                 className="h-12 text-lg"
               />
             </div>
@@ -164,7 +175,9 @@ export default function StudentEditPage() {
               <Label className="text-base">Grade</Label>
               <select
                 value={formData.grade}
-                onChange={(e) => handleInputChange("grade", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("grade", e.target.value)
+                }
                 className="w-full h-12 rounded-md border bg-background px-3 py-2 text-lg"
               >
                 <option value="A">A</option>
@@ -191,3 +204,4 @@ export default function StudentEditPage() {
     </>
   );
 }
+
