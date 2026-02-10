@@ -31,7 +31,7 @@ const useTeacher = () => {
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const response = await fetch("https://schooldashboard-production-04e3.up.railway.app/teachers");
+        const response = await fetch("htps://localhost:3001/teachers");
         if (!response.ok) throw new Error("Failed to fetch teachers");
         const data = await response.json();
         setRecords(data);
