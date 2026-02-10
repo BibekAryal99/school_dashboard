@@ -119,8 +119,9 @@ export default function StudentEditPage() {
   if (!student) return <div className="p-6">Student record not found</div>;
 
   return (
-    <ToastProvider>   
+     
     <>
+       <ToastProvider> 
       <div className="p-6 max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
