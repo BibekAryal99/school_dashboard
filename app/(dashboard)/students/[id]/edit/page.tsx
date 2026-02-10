@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import { Student } from "@/app/types/student";
 
 const API_BASE_URL = "https://blissful-cat-production.up.railway.app/students";
@@ -13,7 +14,7 @@ const API_BASE_URL = "https://blissful-cat-production.up.railway.app/students";
 export default function StudentEditPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast, ToastContainer } = useToast();
+  const { toast } = useToast();
 
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,6 @@ export default function StudentEditPage() {
         const data: Student = await response.json();
         setStudent(data);
 
-        // hydrate form ONLY ONCE
         if (!initializedRef.current) {
           setFormData({
             name: data.name ?? "",
@@ -119,9 +119,7 @@ export default function StudentEditPage() {
   if (!student) return <div className="p-6">Student record not found</div>;
 
   return (
-     
     <>
-       <ToastProvider> 
       <div className="p-6 max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -200,9 +198,11 @@ export default function StudentEditPage() {
           </div>
         </div>
       </div>
-       <ToastContainer />
-       </ToastProvider>
+
+      {/* Shadcn toaster */}
+      <Toaster />
     </>
   );
 }
+
 
