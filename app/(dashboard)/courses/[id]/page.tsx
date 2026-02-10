@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Course } from "@/app/types/course";
 import { useToast } from "@/components/ui/toast";
 
-const API_BASE_URL = "http://localhost:3001/courses";
+const API_BASE_URL = "https://blissful-cat-production.up.railway.app/courses";
 
 export default function CourseDetailPage() {
   const params = useParams();
