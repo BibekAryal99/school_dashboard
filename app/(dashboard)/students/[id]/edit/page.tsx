@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Toaster } from "@/components/ui/toaster";
 import { Student } from "@/app/types/student";
 
 const API_BASE_URL = "https://blissful-cat-production.up.railway.app/students";
@@ -198,9 +197,6 @@ export default function StudentEditPage() {
           </div>
         </div>
       </div>
-
-      {/* Shadcn toaster */}
-      <Toaster />
     </>
   );
 }
