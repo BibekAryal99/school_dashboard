@@ -27,27 +27,30 @@ export default function CourseDetailPage() {
       return;
     }
 
-    const fetchCourse = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/${id}`);
+   const fetchCourse = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`);
 
-        if (!response.ok) {
-          setCourse(null);
-          return;
-        }
+    if (!response.ok) {
+      setCourse(null);
+      return;
+    }
 
-        const data = await response.json();
-        setCourse(data);
-      } catch (error) {
-        console.error("Error fetching course:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load course details.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    const json = await response.json();
+    const data = json.data ?? json;  
+
+    setCourse(data);
+  } catch (error) {
+    console.error("Error fetching course:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load course details.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     fetchCourse();
   }, [id, toast]);
