@@ -2,12 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { CourseFormData } from "@/app/validation/schemas/course";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Course } from "@/app/types/course";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
+import type { Course } from "@/app/types/course";
 
 const API_BASE_URL = "https://blissful-cat-production.up.railway.app/courses";
 
@@ -15,35 +14,45 @@ export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const [course, setCourse] = useState<CourseFormData | null>(null);
+
+  const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
 
+  
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
     const fetchCourse = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/${params.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCourse(data);
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to load course",
-          });
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+
+        if (!response.ok) {
+          setCourse(null);
+          return;
         }
+
+        const data = await response.json();
+        setCourse(data);
       } catch (error) {
         console.error("Error fetching course:", error);
         toast({
           title: "Error",
-          description: "Failed to load course",
+          description: "Failed to load course details.",
         });
       } finally {
         setLoading(false);
       }
     };
-    fetchCourse();
-  }, [params.id, toast]);
 
+    fetchCourse();
+  }, [id, toast]);
+
+ 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -55,26 +64,13 @@ export default function CourseDetailPage() {
     );
   }
 
+ 
   if (!course) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <div className="text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z"
-            />
-          </svg>
-          <p className="text-gray-600 text-lg font-semibold">
-            Course not found
-          </p>
+          <p className="text-3xl font-bold text-gray-400 mb-2">😕</p>
+          <p className="text-gray-600 text-lg font-semibold">Course not found</p>
           <p className="text-gray-500 text-sm mt-1">
             The course you are looking for does not exist.
           </p>
@@ -89,6 +85,7 @@ export default function CourseDetailPage() {
     );
   }
 
+  
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
@@ -101,13 +98,10 @@ export default function CourseDetailPage() {
                 </CardTitle>
                 <p className="text-sm text-gray-600 mt-1">Course Information</p>
               </div>
+
               <Badge
                 variant={course.status === "Active" ? "default" : "secondary"}
-                className={`whitespace-nowrap ${
-                  course.status === "Active"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
+                className="whitespace-nowrap"
               >
                 {course.status}
               </Badge>
@@ -148,11 +142,6 @@ export default function CourseDetailPage() {
                     variant={
                       course.status === "Active" ? "default" : "secondary"
                     }
-                    className={`${
-                      course.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
                   >
                     {course.status}
                   </Badge>
@@ -163,13 +152,14 @@ export default function CourseDetailPage() {
             <div className="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => router.push(`/courses/${course.id}/edit`)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors py-2"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Edit Course
               </Button>
+
               <Button
                 onClick={() => router.push("/courses")}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors py-2"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900"
               >
                 Back to Courses
               </Button>
