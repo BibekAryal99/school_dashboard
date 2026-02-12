@@ -1,14 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Course } from "../types/course";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { Course } from "../types/course";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   courseCreateSchema,
   CourseCreateData,
 } from "../validation/schemas/course";
+
+const API_URL = "https://blissful-cat-production.up.railway.app/courses";
 
 const defaultValues: CourseCreateData = {
   name: "",
@@ -24,7 +26,10 @@ const useCourse = () => {
   const [records, setRecords] = useState<Course[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Course | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string>("");
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<CourseCreateData>({
     resolver: zodResolver(courseCreateSchema),
@@ -33,16 +38,19 @@ const useCourse = () => {
 
   const { reset } = form;
 
- 
+
   useEffect(() => {
     const loadCourses = async () => {
+      setLoading(true);
       try {
-        const response = await fetch("https://blissful-cat-production.up.railway.app/courses");
-        if (!response.ok) throw new Error("Failed to fetch courses");
-        const data = await response.json();
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to fetch courses");
+        const data = await res.json();
         setRecords(data);
-      } catch (error) {
-        console.error("Error loading courses:", error);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -50,50 +58,46 @@ const useCourse = () => {
   }, []);
 
   
-  const onSubmit = async (data: CourseCreateData) => {
-    try {
-      if (editing) {
-        const response = await fetch(
-          `https://blissful-cat-production.up.railway.app/courses/${editing.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
+  const onSubmit = useCallback(
+    async (data: CourseCreateData) => {
+      try {
+        const method = editing ? "PUT" : "POST";
+        const url = editing ? `${API_URL}/${editing.id}` : API_URL;
 
-        if (!response.ok) throw new Error("Failed to update");
-        const updated = await response.json();
-
-        setRecords((prev) =>
-          prev.map((r) => (r.id === editing.id ? updated : r))
-        );
-
-        setSuccessMessage("Course updated successfully!");
-      } else {
-        const response = await fetch("https://blissful-cat-production.up.railway.app/courses", {
-          method: "POST",
+        const res = await fetch(url, {
+          method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
 
-        if (!response.ok) throw new Error("Failed to create");
-        const created = await response.json();
+        if (!res.ok) throw new Error("Failed to save course");
 
-        setRecords((prev) => [...prev, created]);
-        setSuccessMessage("Course added successfully!");
+        const result = await res.json();
+
+        setRecords((prev) =>
+          editing
+            ? prev.map((r) => (r.id === editing.id ? result : r))
+            : [...prev, result]
+        );
+
+        setSuccessMessage(
+          editing ? "Course updated successfully!" : "Course added successfully!"
+        );
+
+        setOpen(false);
+        setEditing(null);
+        reset();
+      } catch (err: any) {
+        setError(err.message);
       }
+    },
+    [editing, reset]
+  );
 
-      setOpen(false);
-      setEditing(null);
-      reset();
-    } catch (error) {
-      console.error("Error submitting course:", error);
-    }
-  };
-
+  
   const handleEdit = (record: Course) => {
     setEditing(record);
+
     reset({
       name: record.name,
       instructor: record.instructor,
@@ -101,39 +105,36 @@ const useCourse = () => {
       status: record.status,
       joinDate: new Date(record.joinDate).toISOString().split("T")[0],
     });
+
     setOpen(true);
   };
 
+  
   const handleDelete = async (id: number, name?: string) => {
     try {
-      const response = await fetch(`https://blissful-cat-production.up.railway.app/courses/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete");
+      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
 
       setRecords((prev) => prev.filter((r) => r.id !== id));
-      setSuccessMessage(
-        name ? `Course "${name}" deleted successfully!` : "Course deleted"
-      );
-    } catch (error) {
-      console.error("Error deleting course:", error);
+      setSuccessMessage(name ? `"${name}" deleted.` : "Course deleted");
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   return {
     router,
     records,
-    setRecords,
     open,
-    setOpen,
     editing,
-    setEditing,
+    loading,
+    error,
     form,
-    onSubmit,         
+    onSubmit,
     handleEdit,
     handleDelete,
-    successMessage,    
+    setOpen,
+    successMessage,
   };
 };
 
