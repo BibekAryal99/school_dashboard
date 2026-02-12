@@ -234,7 +234,8 @@ export default function CoursesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() =>
-                            router.push(`/courses/${course.id}`)
+                           router.push(`/courses/${String(course.id)}`);
+
                           }
                         >
                           View Details
