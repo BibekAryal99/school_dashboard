@@ -11,15 +11,13 @@ import type { Course } from "@/app/types/course";
 const API_BASE_URL = "https://blissful-cat-production.up.railway.app/courses";
 
 export default function CourseDetailPage() {
-  const params = useParams();
+  const { id } = useParams(); // id is always string
   const router = useRouter();
   const { toast } = useToast();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
     if (!id) {
@@ -31,14 +29,15 @@ export default function CourseDetailPage() {
     const fetchCourse = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/${id}`);
-        const json = await response.json();
 
         if (!response.ok) {
           setError("Course not found");
           setCourse(null);
-        } else {
-          setCourse(json);
+          return;
         }
+
+        const data: Course = await response.json();
+        setCourse(data);
       } catch (err) {
         console.error("Error fetching course:", err);
         toast({
@@ -93,9 +92,7 @@ export default function CourseDetailPage() {
           <CardHeader className="border-b bg-gray-50">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  {course.name}
-                </CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900">{course.name}</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">Course Information</p>
               </div>
 
@@ -154,3 +151,4 @@ export default function CourseDetailPage() {
     </div>
   );
 }
+
