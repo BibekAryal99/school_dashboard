@@ -17,45 +17,44 @@ export default function CourseDetailPage() {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
     if (!id) {
+      setError("Invalid course ID");
       setLoading(false);
       return;
     }
 
-   const fetchCourse = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
+    const fetchCourse = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        const json = await response.json();
 
-    if (!response.ok) {
-      setCourse(null);
-      return;
-    }
-
-    const json = await response.json();
-    const data = json.data ?? json;  
-
-    setCourse(data);
-  } catch (error) {
-    console.error("Error fetching course:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load course details.",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+        if (!response.ok) {
+          setError("Course not found");
+          setCourse(null);
+        } else {
+          setCourse(json);
+        }
+      } catch (err) {
+        console.error("Error fetching course:", err);
+        toast({
+          title: "Error",
+          description: "Failed to load course details.",
+        });
+        setError("Failed to fetch course");
+        setCourse(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchCourse();
   }, [id, toast]);
 
- 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -67,13 +66,12 @@ export default function CourseDetailPage() {
     );
   }
 
- 
-  if (!course) {
+  if (error || !course) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <div className="text-center">
           <p className="text-3xl font-bold text-gray-400 mb-2">😕</p>
-          <p className="text-gray-600 text-lg font-semibold">Course not found</p>
+          <p className="text-gray-600 text-lg font-semibold">{error || "Course not found"}</p>
           <p className="text-gray-500 text-sm mt-1">
             The course you are looking for does not exist.
           </p>
@@ -88,7 +86,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
@@ -114,38 +111,22 @@ export default function CourseDetailPage() {
           <CardContent className="pt-6">
             <div className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Instructor
-                </label>
-                <p className="text-base text-gray-900 mt-1 font-medium">
-                  {course.instructor}
-                </p>
+                <label className="text-sm font-medium text-gray-700">Instructor</label>
+                <p className="text-base text-gray-900 mt-1 font-medium">{course.instructor}</p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Number of Students
-                </label>
+                <label className="text-sm font-medium text-gray-700">Number of Students</label>
                 <p className="text-base text-gray-900 mt-1">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {course.students}
-                  </span>
-                  <span className="text-gray-600 text-sm ml-2">
-                    students enrolled
-                  </span>
+                  <span className="text-2xl font-bold text-blue-600">{course.students}</span>
+                  <span className="text-gray-600 text-sm ml-2">students enrolled</span>
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Course Status
-                </label>
+                <label className="text-sm font-medium text-gray-700">Course Status</label>
                 <div className="mt-1">
-                  <Badge
-                    variant={
-                      course.status === "Active" ? "default" : "secondary"
-                    }
-                  >
+                  <Badge variant={course.status === "Active" ? "default" : "secondary"}>
                     {course.status}
                   </Badge>
                 </div>
